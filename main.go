@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import "github.com/TheJ0lly/GoChain/blockchain"
 
 func main() {
-	fmt.Printf("Hello from the new BlockChain\n")
+	bc := blockchain.InitializeBlockChain()
+
+	bc.AddData("Matei")
+	bc.AddData("Camelia")
+	bc.AddData("Florin")
+	bc.AddData("Test1")
+	bc.AddData("Test2")
+
+	bc.PrintBlockChain()
+
 }
