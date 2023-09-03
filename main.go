@@ -3,14 +3,14 @@ package main
 import "github.com/TheJ0lly/GoChain/blockchain"
 
 func main() {
-	bc := blockchain.InitializeBlockChain()
+	bc := blockchain.Initialize_BlockChain()
 
-	bc.AddData("Matei")
-	bc.AddData("Camelia")
-	bc.AddData("Florin")
-	bc.AddData("Test1")
-	bc.AddData("Test2")
+	bc.Add_Data("Matei")
+	bc.Add_Data("Camelia")
+	bc.Add_Data("Florin")
+	bc.Add_Data("Test1")
+	bc.Add_Data("Test2")
 
-	bc.PrintBlockChain()
+	bc.Print_BlockChain()
 
 }

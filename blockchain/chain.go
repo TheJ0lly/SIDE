@@ -10,19 +10,19 @@ type BlockChain struct {
 	last_index uint64
 }
 
-func InitializeBlockChain() *BlockChain {
+func Initialize_BlockChain() *BlockChain {
 	bc := &BlockChain{last_index: 0}
 	bc.blocks = append(bc.blocks, *create_genesis_block())
 
 	return bc
 }
 
-func (bc *BlockChain) GetLastBlock() *Block {
+func (bc *BlockChain) Get_Last_Block() *Block {
 	return &bc.blocks[bc.last_index]
 }
 
-func (bc *BlockChain) AddData(data string) error {
-	lb := bc.GetLastBlock()
+func (bc *BlockChain) Add_Data(data string) error {
+	lb := bc.Get_Last_Block()
 
 	err := lb.add_data_to_block(data)
 
@@ -40,7 +40,7 @@ func (bc *BlockChain) AddData(data string) error {
 	return nil
 }
 
-func (bc *BlockChain) PrintBlockChain() {
+func (bc *BlockChain) Print_BlockChain() {
 	for i := uint64(0); i <= bc.last_index; i++ {
 		bc.blocks[i].print_block_info()
 	}
