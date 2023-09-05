@@ -40,6 +40,7 @@ func (bc *BlockChain) Add_Data(data string) error {
 	return nil
 }
 
+// This function is for testing purposes and will soon become obsolete and it will be removed when the database has been introduced
 func (bc *BlockChain) Print_BlockChain() {
 	for i := uint64(0); i <= bc.last_index; i++ {
 		bc.blocks[i].print_block_info()

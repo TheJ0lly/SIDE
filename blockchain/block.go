@@ -21,11 +21,15 @@ func create_genesis_block() *Block {
 	return &Block{meta_data: md, prev_hash: nil, curr_hash: generate_hash(get_block_bytes(md))}
 }
 
-// This function will
+// This function will create a new block, and it will return the new block
 func create_new_block(b Block) *Block {
 	return &Block{meta_data: nil, prev_hash: b.curr_hash, curr_hash: generate_hash(b.curr_hash)}
 }
 
+// This function will add data to a block if possible, otherwise it will return an error.
+// 	return values:
+// 	-DataTooBig - meaning that the data is too big, thus it will require adjustment.
+// 	-BlockCapacityReached - meaning that the current block capacity has been reached and a new block is needed for the addition and storage of the data.
 func (b *Block) add_data_to_block(data string) error {
 	if len(data) > data_length {
 		return &DataTooBig{Data: data}
@@ -36,10 +40,10 @@ func (b *Block) add_data_to_block(data string) error {
 	}
 
 	b.meta_data = append(b.meta_data, data)
-	b.curr_hash = generate_hash(get_block_bytes(b.meta_data))
 	return nil
 }
 
+// This function will print out the info regarding a block
 func (b *Block) print_block_info() {
 	fmt.Printf("previous hash: %s\ncurrent hash: %s\ndata:", b.prev_hash, b.curr_hash)
 
