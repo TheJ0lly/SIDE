@@ -1,8 +1,20 @@
--Add local DB - later research how to synchronize the database for new users, and how to add new users to a blockchain :)
--Add serialize/deserialize mechanism for database
+Mandatory:
+    -Add Wallets (Users)
+    
+    -Add a CLI package to handle and beautify the CLI, of course :)
 
--Add lookup for data - good for searching through whole blockchain, research how to do it, maybe do a 2-ended search using go-routines, one from start to middle, one from middle to end, let's see :)
+After-thought:
+    -Add serialize/deserialize mechanism for database
+    
+    -Add lookup for data - good for searching through whole blockchain, research how to do it, maybe do a 2-ended search using go-routines, one from start to middle, one from middle to end, let's see :)
+    
+    -Add way to add & remove & manage users to the network
+        -Research how to synchronize the database for new users.
+    
+    -Add new things required for a blockchain
 
--Add way to add & remove & manage users to the network
 
--Add new things required for a blockchain
+
+
+
+
