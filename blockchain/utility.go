@@ -21,6 +21,7 @@ func get_block_bytes(data []string) []byte {
 		for _, char := range str {
 			all_bytes = append(all_bytes, byte(char))
 		}
+		all_bytes = append(all_bytes, '\n')
 	}
 	return all_bytes
 }
@@ -30,4 +31,9 @@ func check_if_genesis(b *Block) bool {
 		return false
 	}
 	return b.meta_data[0] == genesis_name
+}
+
+// This function will return the last block from the blockchain
+func (bc *BlockChain) get_last_block() *Block {
+	return &bc.blocks[bc.last_index]
 }
