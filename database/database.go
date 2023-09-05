@@ -6,7 +6,7 @@ import (
 )
 
 type Database struct {
-	DatabaseDir string
+	database_dir string
 }
 
 // This function will initialize a database instance.
@@ -24,7 +24,7 @@ func Initialize_Database(location string) *Database {
 		return nil
 	}
 
-	return &Database{DatabaseDir: location}
+	return &Database{database_dir: location}
 }
 
 // This function is useless now and will do nothing.
@@ -35,7 +35,7 @@ func Rellocate_Database(location string) {
 // This function will write to the database folder, where the key is supposed to be the block hash, and the value is the data inside the block.
 // If the file is successfully created and written to, it will return nil, otherwise it will return the according error.
 func (db *Database) Write_New_File_To_DB(key string) error {
-	path_to_file := fmt.Sprintf("%s\\%s", db.DatabaseDir, key)
+	path_to_file := fmt.Sprintf("%s\\%s", db.database_dir, key)
 
 	file, err := os.Create(path_to_file)
 
@@ -50,7 +50,7 @@ func (db *Database) Write_New_File_To_DB(key string) error {
 // This function will update the data under a file.
 // If the file exists and the data is updated, it will return nil, otherwise it will return the according error.
 func (db *Database) Update_File_From_DB(key string, value []byte) error {
-	file_location := fmt.Sprintf("%s\\%s", db.DatabaseDir, key)
+	file_location := fmt.Sprintf("%s\\%s", db.database_dir, key)
 
 	_, err := os.Stat(file_location)
 
@@ -74,7 +74,7 @@ func (db *Database) Update_File_From_DB(key string, value []byte) error {
 // This function will read from the database folder, and will return the bytes stored in the folder.
 // If the exists and it contains data, it will return a slice of bytes, otherwise it will return nil.
 func (db *Database) Read_File_From_DB(key string) ([]byte, error) {
-	file_location := fmt.Sprintf("%s\\%s", db.DatabaseDir, key)
+	file_location := fmt.Sprintf("%s\\%s", db.database_dir, key)
 
 	bytes, err := os.ReadFile(file_location)
 
