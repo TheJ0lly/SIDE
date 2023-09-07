@@ -1,0 +1,11 @@
+-Add new functionality to the wallet:
+    -initiate transaction
+    -accept transaction --- (maybe?)
+    -sign & verify
+    -storage for assets --- (maybe the database with different folder)
+        -file name: asset name
+        -file content: asset bytes
+
+-Add Transaction type instead of string in Block.meta_data
+
+-Should I add money to variable to Wallet, to hold amount?

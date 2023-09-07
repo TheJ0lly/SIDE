@@ -15,12 +15,12 @@ func Initialize_Database(location string) *Database {
 	temp, err := os.Stat(location)
 
 	if os.IsNotExist(err) {
-		fmt.Printf("proposed database location does not exist! - \"%s\"\n", location)
+		fmt.Printf("Proposed database location does not exist! - \"%s\"\n", location)
 		return nil
 	}
 
 	if !temp.IsDir() {
-		fmt.Printf("proposed database location is not a folder! - \"%s\"\n", location)
+		fmt.Printf("Proposed database location is not a folder! - \"%s\"\n", location)
 		return nil
 	}
 
@@ -55,7 +55,7 @@ func (db *Database) Update_File_From_DB(key string, value []byte) error {
 	_, err := os.Stat(file_location)
 
 	if os.IsNotExist(err) {
-		fmt.Printf("the file does not exist in the database! - \"%s\"\n", file_location)
+		fmt.Printf("The file does not exist in the database! - \"%s\"\n", file_location)
 		return err
 	}
 
@@ -83,4 +83,9 @@ func (db *Database) Read_File_From_DB(key string) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+// This function returns the directory in which we store the local database
+func (db *Database) Get_Database_Dir() string {
+	return db.database_dir
 }
