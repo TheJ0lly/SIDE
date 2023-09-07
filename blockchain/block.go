@@ -1,7 +1,5 @@
 package blockchain
 
-import "fmt"
-
 const (
 	genesis_name        = "GenesisBlockIsHereAndNotAnywhereElseAndDoNotGoLookForTheValueBecauseYouWillNotFindIt"
 	block_data_capacity = 3
@@ -41,15 +39,4 @@ func (b *Block) add_data_to_block(data string) error {
 
 	b.meta_data = append(b.meta_data, data)
 	return nil
-}
-
-// This function will print out the info regarding a block
-func (b *Block) print_block_info() {
-	fmt.Printf("previous hash: %s\ncurrent hash: %s\ndata:", b.prev_hash, b.curr_hash)
-
-	for _, md := range b.meta_data {
-		fmt.Printf("\n\t%s", md)
-	}
-
-	fmt.Printf("\n\n")
 }

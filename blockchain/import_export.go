@@ -1,0 +1,192 @@
+package blockchain
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
+
+type BlockChain_IE struct {
+	Last_Block_Hash string `json:"LB_HASH"`
+	Database_Dir    string `json:"DB_DIR"`
+}
+
+type Block_IE struct {
+	Current_Hash  string   `json:"CURRENT_HASH"`
+	Previous_Hash string   `json:"PREVIOUS_HASH"`
+	Meta_Data     []string `json:"META_DATA"`
+}
+
+func (bc *BlockChain) Save_State() {
+	bcie := BlockChain_IE{Last_Block_Hash: string(bc.last_block.curr_hash), Database_Dir: bc.database_dir}
+
+	file, err := os.Create("./bcs")
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	bytes_to_write, err := json.Marshal(bcie)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	_, err = file.Write(bytes_to_write)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+}
+
+func (b *Block) save_state(db_dir string) {
+	bie := Block_IE{Current_Hash: string(b.curr_hash), Previous_Hash: string(b.prev_hash), Meta_Data: b.meta_data}
+
+	file, err := os.Create(fmt.Sprintf("%s\\%s", db_dir, bie.Current_Hash))
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	bytes_to_write, err := json.Marshal(bie)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	_, err = file.Write(bytes_to_write)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+}
+
+func load_blockchain() *BlockChain {
+	files, err := os.ReadDir(".")
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	is_save := false
+
+	for _, f := range files {
+		if f.Name() == "bcs" {
+			is_save = true
+			break
+		}
+	}
+
+	if !is_save {
+		fmt.Printf("There is no save file! Creating blockchain from Genesis!\n")
+		return nil
+	}
+
+	bytes_read, err := os.ReadFile("./bcs")
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	bcie := &BlockChain_IE{}
+
+	err = json.Unmarshal(bytes_read, bcie)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	bc_blocks := rebuild_blockchain([]byte(bcie.Last_Block_Hash), bcie.Database_Dir)
+
+	if bc_blocks == nil {
+		return nil
+	}
+
+	bc := &BlockChain{database_dir: bcie.Database_Dir, last_block: &bc_blocks[0], blocks: bc_blocks}
+
+	return bc
+}
+
+func load_block(block_hash []byte, db_dir string) *Block {
+	files, err := os.ReadDir(db_dir)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	block_exists := false
+
+	for _, f := range files {
+		if f.Name() == string(block_hash) {
+			block_exists = true
+			break
+		}
+	}
+
+	if !block_exists {
+		fmt.Printf("There is no block with the hash \"%s\"! Creating blockchain from Genesis!\n", block_hash)
+		return nil
+	}
+
+	bytes_read, err := os.ReadFile(fmt.Sprintf("%s\\%s", db_dir, block_hash))
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	bie := &Block_IE{}
+
+	err = json.Unmarshal(bytes_read, bie)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	new_block := &Block{meta_data: bie.Meta_Data, prev_hash: []byte(bie.Previous_Hash), curr_hash: []byte(bie.Current_Hash)}
+
+	return new_block
+}
+
+func rebuild_blockchain(last_block_hash []byte, db_dir string) []Block {
+	files, err := os.ReadDir(db_dir)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	if len(files) == 0 {
+		fmt.Printf("There are no files in the database! Creating blockchain from Genesis!\n")
+		return nil
+	}
+
+	blocks := make([]Block, 0)
+	for {
+		nb := load_block(last_block_hash, db_dir)
+		blocks = append(blocks, *nb)
+
+		if len(nb.prev_hash) == 0 {
+			break
+		}
+
+		last_block_hash = nb.prev_hash
+	}
+
+	return blocks
+}
