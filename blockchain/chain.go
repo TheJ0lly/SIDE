@@ -2,8 +2,9 @@ package blockchain
 
 import (
 	"errors"
-	"fmt"
 	"os"
+
+	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 type BlockChain struct {
@@ -14,23 +15,15 @@ type BlockChain struct {
 
 // This function will initialize a new blockchain, along with its genesis block, so that the blockchain is ready to use.
 func Initialize_BlockChain(db_loc string) *BlockChain {
-
-	saved_bc := load_blockchain()
-
-	if saved_bc != nil {
-		fmt.Printf("Blockchain save found! Restoring...\n")
-		return saved_bc
-	}
-
 	files, err := os.ReadDir(db_loc)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil
 	}
 
 	for _, f := range files {
-		os.Remove(fmt.Sprintf("%s\\%s", db_loc, f.Name()))
+		os.Remove(prettyfmt.Sprintf("%s\\%s", db_loc, f.Name()))
 	}
 
 	bc := &BlockChain{database_dir: db_loc}

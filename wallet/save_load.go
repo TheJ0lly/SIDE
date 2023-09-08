@@ -3,10 +3,10 @@ package wallet
 import (
 	"crypto/rsa"
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
+	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 type Wallet_IE struct {
@@ -28,23 +28,25 @@ func (w *Wallet) Save_State() {
 	bytes_to_write, err := json.Marshal(wie)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.Printf("%s\n", prettyfmt.RED, err.Error())
 		return
 	}
 
 	err = os.WriteFile("./ws", bytes_to_write, 0666)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.Printf("%s\n", prettyfmt.RED, err.Error())
 		return
 	}
 }
 
-func load_wallet() *Wallet {
+func Load_Wallet() *Wallet {
+	prettyfmt.Print("Looking for save of the wallet...\n", prettyfmt.BLUE)
+
 	bytes_read, err := os.ReadFile("./ws")
 
 	if err != nil {
-		fmt.Printf("There is no save file! Recreating wallet...\n")
+		prettyfmt.Print("There is no save file! Recreating wallet...\n", prettyfmt.RED)
 		return nil
 	}
 
@@ -53,14 +55,14 @@ func load_wallet() *Wallet {
 	err = json.Unmarshal(bytes_read, wie)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.Printf("%s\n", prettyfmt.RED, err.Error())
 		return nil
 	}
 
 	files, err := os.ReadDir(wie.Database_Dir)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.Printf("%s\n", prettyfmt.RED, err.Error())
 		return nil
 	}
 
@@ -69,7 +71,7 @@ func load_wallet() *Wallet {
 	assets_to_recreate := []string{}
 
 	if asset_len != len(files) {
-		fmt.Printf("Some assets have been corrupted or deleted! Recreating the assets that can be found...\n")
+		prettyfmt.Print("Some assets have been corrupted or deleted! Recreating the assets that can be found...\n", prettyfmt.YELLOW)
 
 		assets_to_recreate = append(assets_to_recreate, wie.Assets...)
 	}
@@ -91,21 +93,21 @@ func load_wallet() *Wallet {
 		}
 
 		if !continue_to_recreate {
-			os.Remove(fmt.Sprintf("%s\\%s", wie.Database_Dir, f.Name()))
+			os.Remove(prettyfmt.Sprintf("%s\\%s", wie.Database_Dir, f.Name()))
 			continue
 		}
 
-		bytes_read, err = os.ReadFile(fmt.Sprintf("%s\\%s", wie.Database_Dir, f.Name()))
+		bytes_read, err = os.ReadFile(prettyfmt.Sprintf("%s\\%s", wie.Database_Dir, f.Name()))
 
 		if err != nil {
-			fmt.Printf("%s\n", err.Error())
+			prettyfmt.Printf("%s\n", prettyfmt.RED, err.Error())
 			return nil
 		}
 
 		ft := asset.Determine_Asset_Type(bytes_read)
 
 		if ft == asset.UNKNOWN {
-			fmt.Printf("This asset may have been corrupted, changed, or added manually! Skipping - %s\n", f.Name())
+			prettyfmt.Printf("This asset may have been corrupted, changed, or added manually! Skipping - %s\n", prettyfmt.YELLOW, f.Name())
 		}
 
 		asset := asset.Create_New_Asset(f.Name(), ft, bytes_read)

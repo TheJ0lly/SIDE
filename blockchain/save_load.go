@@ -2,8 +2,9 @@ package blockchain
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
+
+	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 type BlockChain_IE struct {
@@ -23,14 +24,14 @@ func (bc *BlockChain) Save_State() {
 	bytes_to_write, err := json.Marshal(bcie)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return
 	}
 
 	err = os.WriteFile("./bcs", bytes_to_write, 0666)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return
 	}
 }
@@ -41,28 +42,28 @@ func (b *Block) save_state(db_dir string) {
 	bytes_to_write, err := json.Marshal(bie)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return
 	}
 
-	if err != nil {
-		fmt.Printf("%s\n", err.Error())
-		return
-	}
+	file_path := prettyfmt.Sprintf("%s\\%s", db_dir, bie.Current_Hash)
 
-	err = os.WriteFile(fmt.Sprintf("%s\\%s", db_dir, bie.Current_Hash), bytes_to_write, 0666)
+	err = os.WriteFile(file_path, bytes_to_write, 0666)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return
 	}
 }
 
-func load_blockchain() *BlockChain {
+func Load_Blockchain() *BlockChain {
+
+	prettyfmt.Print("Looking for save of the blockchain...\n", prettyfmt.BLUE)
+
 	bytes_read, err := os.ReadFile("./bcs")
 
 	if err != nil {
-		fmt.Printf("There is no save file for the blockchain! Creating the blockchain from Genesis...\n")
+		prettyfmt.Print("There is no save file for the blockchain! Creating the blockchain from Genesis...\n", prettyfmt.RED)
 		return nil
 	}
 
@@ -71,7 +72,7 @@ func load_blockchain() *BlockChain {
 	err = json.Unmarshal(bytes_read, bcie)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil
 	}
 
@@ -90,7 +91,7 @@ func load_block(block_hash []byte, db_dir string) *Block {
 	files, err := os.ReadDir(db_dir)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil
 	}
 
@@ -104,14 +105,14 @@ func load_block(block_hash []byte, db_dir string) *Block {
 	}
 
 	if !block_exists {
-		fmt.Printf("There is no block with the hash \"%s\"! Creating blockchain from Genesis...\n", block_hash)
+		prettyfmt.Printf("There is no block with the hash \"%s\"! Creating blockchain from Genesis...\n", prettyfmt.RED, block_hash)
 		return nil
 	}
 
-	bytes_read, err := os.ReadFile(fmt.Sprintf("%s\\%s", db_dir, block_hash))
+	bytes_read, err := os.ReadFile(prettyfmt.Sprintf("%s\\%s", db_dir, block_hash))
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil
 	}
 
@@ -120,7 +121,7 @@ func load_block(block_hash []byte, db_dir string) *Block {
 	err = json.Unmarshal(bytes_read, bie)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil
 	}
 
@@ -133,18 +134,23 @@ func rebuild_blockchain(last_block_hash []byte, db_dir string) []Block {
 	files, err := os.ReadDir(db_dir)
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil
 	}
 
 	if len(files) == 0 {
-		fmt.Printf("There are no files in the database! Creating blockchain from Genesis...\n")
+		prettyfmt.Printf("There are no files in the database! Creating blockchain from Genesis...\n", prettyfmt.RED)
 		return nil
 	}
 
 	blocks := make([]Block, 0)
 	for {
 		nb := load_block(last_block_hash, db_dir)
+
+		if nb == nil {
+			return nil
+		}
+
 		blocks = append(blocks, *nb)
 
 		if len(nb.prev_hash) == 0 {

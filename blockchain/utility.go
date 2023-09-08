@@ -2,13 +2,14 @@ package blockchain
 
 import (
 	"crypto/sha256"
-	"fmt"
+
+	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 func generate_hash(data []byte) []byte {
 	gen_hash := sha256.Sum256(data)
 
-	converted_hash := fmt.Sprintf("%X", gen_hash)
+	converted_hash := prettyfmt.Sprintf("%X", gen_hash)
 
 	return []byte(converted_hash)
 

@@ -1,13 +1,15 @@
 package blockchain
 
-import "fmt"
+import (
+	"github.com/TheJ0lly/GoChain/prettyfmt"
+)
 
 type DataTooBig struct {
 	Data string
 }
 
 func (dtb *DataTooBig) Error() string {
-	return fmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, data_length)
+	return prettyfmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, data_length)
 }
 
 type BlockCapacityReached struct{}
