@@ -20,15 +20,6 @@ type Block_IE struct {
 func (bc *BlockChain) Save_State() {
 	bcie := BlockChain_IE{Last_Block_Hash: string(bc.last_block.curr_hash), Database_Dir: bc.database_dir}
 
-	file, err := os.Create("./bcs")
-
-	if err != nil {
-		fmt.Printf("%s\n", err.Error())
-		return
-	}
-
-	defer file.Close()
-
 	bytes_to_write, err := json.Marshal(bcie)
 
 	if err != nil {
@@ -36,7 +27,7 @@ func (bc *BlockChain) Save_State() {
 		return
 	}
 
-	_, err = file.Write(bytes_to_write)
+	err = os.WriteFile("./bcs", bytes_to_write, 0666)
 
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
@@ -47,15 +38,6 @@ func (bc *BlockChain) Save_State() {
 func (b *Block) save_state(db_dir string) {
 	bie := Block_IE{Current_Hash: string(b.curr_hash), Previous_Hash: string(b.prev_hash), Meta_Data: b.meta_data}
 
-	file, err := os.Create(fmt.Sprintf("%s\\%s", db_dir, bie.Current_Hash))
-
-	if err != nil {
-		fmt.Printf("%s\n", err.Error())
-		return
-	}
-
-	defer file.Close()
-
 	bytes_to_write, err := json.Marshal(bie)
 
 	if err != nil {
@@ -63,7 +45,12 @@ func (b *Block) save_state(db_dir string) {
 		return
 	}
 
-	_, err = file.Write(bytes_to_write)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	err = os.WriteFile(fmt.Sprintf("%s\\%s", db_dir, bie.Current_Hash), bytes_to_write, 0666)
 
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
@@ -72,31 +59,10 @@ func (b *Block) save_state(db_dir string) {
 }
 
 func load_blockchain() *BlockChain {
-	files, err := os.ReadDir(".")
-
-	if err != nil {
-		fmt.Printf("%s\n", err.Error())
-		return nil
-	}
-
-	is_save := false
-
-	for _, f := range files {
-		if f.Name() == "bcs" {
-			is_save = true
-			break
-		}
-	}
-
-	if !is_save {
-		fmt.Printf("There is no save file! Creating blockchain from Genesis!\n")
-		return nil
-	}
-
 	bytes_read, err := os.ReadFile("./bcs")
 
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		fmt.Printf("There is no save file for the blockchain! Creating the blockchain from Genesis...\n")
 		return nil
 	}
 
@@ -138,7 +104,7 @@ func load_block(block_hash []byte, db_dir string) *Block {
 	}
 
 	if !block_exists {
-		fmt.Printf("There is no block with the hash \"%s\"! Creating blockchain from Genesis!\n", block_hash)
+		fmt.Printf("There is no block with the hash \"%s\"! Creating blockchain from Genesis...\n", block_hash)
 		return nil
 	}
 
@@ -172,7 +138,7 @@ func rebuild_blockchain(last_block_hash []byte, db_dir string) []Block {
 	}
 
 	if len(files) == 0 {
-		fmt.Printf("There are no files in the database! Creating blockchain from Genesis!\n")
+		fmt.Printf("There are no files in the database! Creating blockchain from Genesis...\n")
 		return nil
 	}
 

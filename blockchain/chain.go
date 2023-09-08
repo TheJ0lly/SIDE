@@ -2,6 +2,8 @@ package blockchain
 
 import (
 	"errors"
+	"fmt"
+	"os"
 )
 
 type BlockChain struct {
@@ -16,7 +18,19 @@ func Initialize_BlockChain(db_loc string) *BlockChain {
 	saved_bc := load_blockchain()
 
 	if saved_bc != nil {
+		fmt.Printf("Blockchain save found! Restoring...\n")
 		return saved_bc
+	}
+
+	files, err := os.ReadDir(db_loc)
+
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return nil
+	}
+
+	for _, f := range files {
+		os.Remove(fmt.Sprintf("%s\\%s", db_loc, f.Name()))
 	}
 
 	bc := &BlockChain{database_dir: db_loc}

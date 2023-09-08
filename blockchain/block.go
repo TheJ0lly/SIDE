@@ -25,9 +25,10 @@ func create_new_block(b Block) *Block {
 }
 
 // This function will add data to a block if possible, otherwise it will return an error.
-// 	return values:
-// 	-DataTooBig - meaning that the data is too big, thus it will require adjustment.
-// 	-BlockCapacityReached - meaning that the current block capacity has been reached and a new block is needed for the addition and storage of the data.
+//
+//	return values:
+//	-DataTooBig - meaning that the data is too big, thus it will require adjustment.
+//	-BlockCapacityReached - meaning that the current block capacity has been reached and a new block is needed for the addition and storage of the data.
 func (b *Block) add_data_to_block(data string) error {
 	if len(data) > data_length {
 		return &DataTooBig{Data: data}

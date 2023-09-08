@@ -7,7 +7,7 @@ PDF = %PDF / 25 50 44 46
 	%  P  D  F
 */
 const (
-	UNKNOWN File_Type = iota
+	UNKNOWN FileType = iota
 	JPEG
 	PDF
 )
@@ -19,32 +19,21 @@ const (
 	pdf_header_value = 0x25504446
 )
 
-type File_Type uint8
+type FileType uint8
 
 type Asset struct {
 	name string
-	ft   File_Type
+	ft   FileType
 	data []byte
 }
 
 // This function will create a new asset structure and will return it as a pointer.
-func Create_New_Asset(asset_name string, ft File_Type, data []byte) *Asset {
+func Create_New_Asset(asset_name string, ft FileType, data []byte) *Asset {
 	return &Asset{name: asset_name, ft: ft, data: data}
 }
 
-// This function finds an asset in a list of assets, and returns its index.
-func Find_Asset(asset_name string, assets []Asset) int {
-	for i, a := range assets {
-		if a.name == asset_name {
-			return i
-		}
-	}
-
-	return -1
-}
-
 // This function will determine the type of asset to upload to the wallet.
-func Determine_Asset_Type(data []byte) File_Type {
+func Determine_Asset_Type(data []byte) FileType {
 
 	if determine_JPEG(data) {
 		return JPEG
@@ -54,6 +43,10 @@ func Determine_Asset_Type(data []byte) File_Type {
 
 	return UNKNOWN
 
+}
+
+func (a *Asset) Get_Name() string {
+	return a.name
 }
 
 // This function will check to see and determine if the asset is of type JPEG.
