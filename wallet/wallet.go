@@ -23,7 +23,7 @@ type Wallet struct {
 }
 
 // This function will create a wallet.
-func Create_And_Init_Wallet(username string, password string, location string) *Wallet {
+func Initialize_Wallet(username string, password string, location string) *Wallet {
 
 	saved_wallet := load_wallet()
 

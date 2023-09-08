@@ -15,7 +15,7 @@ func main() {
 
 	// bc.Save_State()
 
-	w := wallet.Create_And_Init_Wallet("matei", "test", "C:\\Users\\eusic\\Desktop\\LucrareLicenta\\Assets")
+	w := wallet.Initialize_Wallet("matei", "test", "C:\\Users\\eusic\\Desktop\\LucrareLicenta\\Assets")
 
 	if w == nil {
 		return
