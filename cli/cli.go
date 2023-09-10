@@ -4,75 +4,72 @@ import (
 	"os"
 
 	"github.com/TheJ0lly/GoChain/blockchain"
+	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/prettyfmt"
 	"github.com/TheJ0lly/GoChain/wallet"
 )
 
-var BC *blockchain.BlockChain
-var W *wallet.Wallet
+func Login_Or_Signup() (*blockchain.BlockChain, *wallet.Wallet) {
+	bc, err := blockchain.Load_Blockchain()
 
-func Login_Or_Signup() {
-	bc := blockchain.Load_Blockchain()
+	if err != nil {
+		generalerrors.HandleError(err)
 
-	if bc == nil {
 		var new_blockchain_db_loc string
 
-		prettyfmt.Print("Hello, there! You will soon become a new node of the Toy Blockchain! Where do you want your new database to be?\n", prettyfmt.GREEN)
+		prettyfmt.CPrint("Hello, there! You will soon become a new node of the Toy Blockchain! Where do you want your new database to be?\n", prettyfmt.GREEN)
 
 		prettyfmt.Scanln(&new_blockchain_db_loc)
 
-		bc = blockchain.Initialize_BlockChain(new_blockchain_db_loc)
+		bc, err = blockchain.Initialize_BlockChain(new_blockchain_db_loc)
 
-		if bc == nil {
-			prettyfmt.Print("Failed to create new instance of the Toy Blockchain!\nExiting...\n", prettyfmt.RED)
-			os.Exit(1)
+		if err != nil {
+			generalerrors.HandleError(err, &generalerrors.All_Errors_Exit{Exit_Code: 1})
 		}
-		prettyfmt.Print("Fantastic! You have become a node of the Toy Blockchain!\n", prettyfmt.GREEN)
+
+		prettyfmt.CPrint("Fantastic! You have become a node of the Toy Blockchain!\n", prettyfmt.GREEN)
 	} else {
-		prettyfmt.Print("Found save file! Restoring Toy Blockchain...\n", prettyfmt.GREEN)
+		prettyfmt.CPrint("Found save file!\n", prettyfmt.GREEN)
 	}
 
-	w := wallet.Load_Wallet()
+	w, err := wallet.Load_Wallet()
 
-	if w == nil {
+	if err != nil {
+		generalerrors.HandleError(err)
 
 		var new_username string
 		var new_password string
 		var new_db_loc string
 
-		prettyfmt.Print("Where do you want to store your new wallet?\n", prettyfmt.GREEN)
+		prettyfmt.CPrint("Where do you want to store your new wallet?\n", prettyfmt.GREEN)
 		prettyfmt.Scanln(&new_db_loc)
 
-		prettyfmt.Print("What is your new username?\n", prettyfmt.GREEN)
+		prettyfmt.CPrint("What is your new username?\n", prettyfmt.GREEN)
 		prettyfmt.Scanln(&new_username)
 
-		prettyfmt.Print("What is your new password?\n", prettyfmt.GREEN)
+		prettyfmt.CPrint("What is your new password?\n", prettyfmt.GREEN)
 		prettyfmt.Scanln(&new_password)
 
 		w = wallet.Initialize_Wallet(new_username, new_password, new_db_loc)
 
 		if w == nil {
-			prettyfmt.Print("Failed to create new wallet!\nExiting...\n", prettyfmt.RED)
-			os.Exit(2)
+			generalerrors.HandleError(err, &generalerrors.All_Errors_Exit{Exit_Code: 2})
 		}
 	} else {
-		prettyfmt.Print("Found save file! Restoring Wallet...\n", prettyfmt.GREEN)
+		prettyfmt.CPrint("Found save file!\n", prettyfmt.GREEN)
 
-		prettyfmt.Printf("Found wallet for user: %s!\nEnter password to confirm identity:\n", prettyfmt.BLUE, w.Get_Username())
+		prettyfmt.CPrintf("Found wallet for user: %s!\nEnter password to confirm identity:\n", prettyfmt.BLUE, w.Get_Username())
 
 		var password string
 		prettyfmt.Scanln(&password)
 
-		w.Confirm_Password(password)
-
 		if !w.Confirm_Password(password) {
-			prettyfmt.Print("Wrong password! Goodbye!\n", prettyfmt.RED)
+			prettyfmt.CPrint("Wrong password! Goodbye!\n", prettyfmt.RED)
 			os.Exit(3)
 		}
 	}
 
-	prettyfmt.Printf("Welcome, %s!\n", prettyfmt.GREEN, w.Get_Username())
+	prettyfmt.CPrintf("Welcome, %s!\n", prettyfmt.GREEN, w.Get_Username())
 
-	BC = bc
-	W = w
+	return bc, w
 }

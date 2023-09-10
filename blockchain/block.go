@@ -1,5 +1,7 @@
 package blockchain
 
+import "github.com/TheJ0lly/GoChain/generalerrors"
+
 const (
 	genesis_name        = "GenesisBlockIsHereAndNotAnywhereElseAndDoNotGoLookForTheValueBecauseYouWillNotFindIt"
 	block_data_capacity = 3
@@ -31,11 +33,11 @@ func create_new_block(b Block) *Block {
 //	-BlockCapacityReached - meaning that the current block capacity has been reached and a new block is needed for the addition and storage of the data.
 func (b *Block) add_data_to_block(data string) error {
 	if len(data) > data_length {
-		return &DataTooBig{Data: data}
+		return &generalerrors.DataTooBig{Data: data}
 	}
 
 	if len(b.meta_data) == block_data_capacity || check_if_genesis(b) {
-		return &BlockCapacityReached{}
+		return &generalerrors.BlockCapacityReached{}
 	}
 
 	b.meta_data = append(b.meta_data, data)

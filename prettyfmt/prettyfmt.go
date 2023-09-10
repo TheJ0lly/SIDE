@@ -18,25 +18,48 @@ const (
 	RESET_COLORS COLOR = "\x1b[0m"
 )
 
-func Print(text string, color COLOR) {
+func Print(text string) {
+	fmt.Print(text)
+}
 
-	if color == NO_COLOR {
-		fmt.Print(text)
-	} else {
+func CPrint(text string, color COLOR) {
+
+	if color != NO_COLOR {
 		fmt.Print(color)
-		fmt.Print(text)
+	}
+
+	fmt.Print(text)
+
+	if color != NO_COLOR {
 		fmt.Print(RESET_COLORS)
 	}
 }
 
-func Printf(format string, color COLOR, a ...any) {
+func Printf(format string, a ...any) {
+	var args_index int = 0
+
+	for i := 0; i < len(format); i++ {
+		if format[i] == '%' && format[i+1] == 's' {
+			fmt.Printf("%s", a[args_index])
+			args_index++
+			i += 1
+		} else if format[i] == '%' && format[i+1] == 'd' {
+			fmt.Printf("%d", a[args_index])
+			args_index++
+			i += 1
+		} else {
+			fmt.Printf("%c", format[i])
+		}
+	}
+}
+
+func CPrintf(format string, color COLOR, a ...any) {
 
 	if color != NO_COLOR {
 		fmt.Print(color)
 	}
 
 	var args_index int = 0
-
 	for i := 0; i < len(format); i++ {
 		if format[i] == '%' && format[i+1] == 's' {
 			fmt.Printf("%s", a[args_index])
@@ -57,7 +80,7 @@ func Printf(format string, color COLOR, a ...any) {
 }
 
 func ErrorF(format string, a ...any) {
-	Printf(format, RED, a)
+	CPrintf(format, RED, a)
 }
 
 func CSprintf(format string, color COLOR, a ...any) string {

@@ -3,6 +3,7 @@ package wallet
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
@@ -109,7 +110,16 @@ func (w *Wallet) Get_Username() string {
 }
 
 func (w *Wallet) Confirm_Password(pass string) bool {
-	return pass == w.password
+	pass_bytes := sha256.Sum256([]byte(pass))
+
+	pass_bytes_str := prettyfmt.Sprintf("%X", pass_bytes)
+
+	if w.password == pass_bytes_str {
+		w.password = pass_bytes_str
+		return true
+	}
+
+	return false
 }
 
 // This function
