@@ -18,10 +18,12 @@ const (
 	RESET_COLORS COLOR = "\x1b[0m"
 )
 
+// Print the text.
 func Print(text string) {
 	fmt.Print(text)
 }
 
+// Print the text with a selected color.
 func CPrint(text string, color COLOR) {
 
 	if color != NO_COLOR {
@@ -35,6 +37,7 @@ func CPrint(text string, color COLOR) {
 	}
 }
 
+// Exact same use as the fmt.Printf.
 func Printf(format string, a ...any) {
 	var args_index int = 0
 
@@ -53,6 +56,7 @@ func Printf(format string, a ...any) {
 	}
 }
 
+// Exact same use as the fmt.Printf, just add the color for the text as the second paramater, then continue as usual.
 func CPrintf(format string, color COLOR, a ...any) {
 
 	if color != NO_COLOR {
@@ -79,10 +83,12 @@ func CPrintf(format string, color COLOR, a ...any) {
 	}
 }
 
+// It uses CPrintf under the hood, and just prints the text in a RED color.
 func ErrorF(format string, a ...any) {
 	CPrintf(format, RED, a)
 }
 
+// Exact same use as the fmt.Sprintf, just add the color for the text as the second parametr, then continue as usual.
 func CSprintf(format string, color COLOR, a ...any) string {
 	var string_to_return string
 
@@ -98,6 +104,7 @@ func CSprintf(format string, color COLOR, a ...any) string {
 	return string_to_return
 }
 
+// Exact same use as the fmt.Sprintf.
 func Sprintf(format string, a ...any) string {
 	var string_to_return string
 	var args_index int = 0
@@ -123,6 +130,7 @@ func Sprintf(format string, a ...any) string {
 	return string_to_return
 }
 
+// Exact same use as the fmt.Scanln.
 func Scanln(str *string) {
 	s := bufio.NewScanner(os.Stdin)
 	s.Scan()

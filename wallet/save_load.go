@@ -2,7 +2,6 @@ package wallet
 
 import (
 	"crypto/rsa"
-	"crypto/sha256"
 	"encoding/json"
 	"os"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
+// This type stands for Wallet_IMPORT_EXPORT, which will be used to save/load the wallet state on this machine.
 type Wallet_IE struct {
 	Username     string         `json:"USERNAME"`
 	Password     string         `json:"PASSWORD"`
@@ -20,13 +20,10 @@ type Wallet_IE struct {
 	Assets       []string       `json:"ASSETS"`
 }
 
+// This function will save the current state of the wallet along with its critical info in a JSON file named "ws", next to the place of execution.
+// If it cannot save, it will return an corresponding error.
 func (w *Wallet) Save_State() error {
-
-	pass_bytes := sha256.Sum256([]byte(w.password))
-
-	pass_bytes_str := prettyfmt.Sprintf("%X", pass_bytes)
-
-	wie := &Wallet_IE{Username: w.username, Password: pass_bytes_str, Pub_Key: w.public_key, Priv_Key: w.private_key, Database_Dir: w.database_dir}
+	wie := &Wallet_IE{Username: w.username, Password: w.password, Pub_Key: w.public_key, Priv_Key: w.private_key, Database_Dir: w.database_dir}
 
 	for _, a := range w.assets {
 		wie.Assets = append(wie.Assets, a.Get_Name())
@@ -47,6 +44,8 @@ func (w *Wallet) Save_State() error {
 	return nil
 }
 
+// This function will try to load the previous saved state of the blockchain.
+// Otherwise, it will return nil and the corresponding error.
 func Load_Wallet() (*Wallet, error) {
 	prettyfmt.CPrint("Looking for save of the wallet...\n", prettyfmt.BLUE)
 

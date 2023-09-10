@@ -7,43 +7,55 @@ import (
 	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
+// This error means that a block's data/transaction capacity has been reached.
 type BlockCapacityReached struct {
 	Capacity uint8
 }
 
+// This error means that a os.ReadDir has failed.
 type ReadDirFailed struct {
 	Dir string
 }
 
+// This error means that a os.ReadDir has failed.
 type ReadFileFailed struct {
 	File string
 }
 
+// This error means that a json.Marshal has failed.
 type JSONMarshalFailed struct {
 	Object string
 }
 
+// This error means that a json.Unmarshal has failed.
 type JSONUnMarshalFailed struct {
 	Object string
 }
 
+// This error means that a os.Remove has failed.
 type RemoveFileFailed struct {
 	File string
 }
 
+// This error means that some data that is trying to be added is too big.
+// SOON WILL BECOME OBSOLETE WHEN REPLACING STRINGS WITH TRANSACTIONS
 type DataTooBig struct {
 	Data        string
 	Data_Length uint8
 }
 
+// This error means that a os.WriteFile has failed.
 type WriteFileFailed struct {
 	File string
 }
 
+// This error means that the database directory where the blocks have been stored, is empty.
+// Is used only when rebuilding the blockchain, because no files means that there has been 100% some tampering going on.
 type BlockChainDBEmpty struct {
 	Dir string
 }
 
+// This error means that a block file is missing from the reconstruction of the blockchain.
 type BlockMissing struct {
 	Block_Hash string
 }
@@ -97,6 +109,7 @@ func (bm *BlockMissing) Error() string {
 
 // ======== HANDLE ERROR FUNCTION ========
 
+// This error means, that if any error has occured, just exit with the Exit_Code value.
 type All_Errors_Exit struct {
 	Exit_Code int
 }
@@ -105,6 +118,9 @@ func (aee *All_Errors_Exit) Error() string {
 	return "Any error will exit the program"
 }
 
+// This function will print the errors given.
+// If you want to exit on a specific error, just add it after the initial error, and if it matches, the program will exit with 1.
+// If you want to exit on all errors, doesn't matter which specific one, just use All_Errors_Exit, and pass the error code you want to exit with.
 func HandleError(err error, errors_to_fail ...error) {
 	prettyfmt.ErrorF("%s\n", err.Error())
 

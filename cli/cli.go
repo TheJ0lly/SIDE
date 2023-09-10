@@ -9,6 +9,8 @@ import (
 	"github.com/TheJ0lly/GoChain/wallet"
 )
 
+// This function will handle the login/signup proccess of the user. If either the Wallet or the Blockchain could not be initialized it exits the program.
+// Otherwise, it returns the blockchain and wallet pointers.
 func Login_Or_Signup() (*blockchain.BlockChain, *wallet.Wallet) {
 	bc, err := blockchain.Load_Blockchain()
 

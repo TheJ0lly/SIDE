@@ -33,7 +33,7 @@ func Initialize_Wallet(username string, password string, db_loc string) *Wallet 
 	}
 
 	for _, f := range files {
-		os.Remove(prettyfmt.Sprintf("%s\\%s", db_loc, f.Name()))
+		os.Remove(prettyfmt.Sprintf("%s/%s", db_loc, f.Name()))
 	}
 
 	priv_key, err := rsa.GenerateKey(rand.Reader, key_bit_size)
@@ -43,7 +43,11 @@ func Initialize_Wallet(username string, password string, db_loc string) *Wallet 
 		return nil
 	}
 
-	w := &Wallet{username: username, password: password, private_key: *priv_key, public_key: priv_key.PublicKey, assets: nil, database_dir: db_loc}
+	pass_bytes := sha256.Sum256([]byte(password))
+
+	pass_bytes_str := prettyfmt.Sprintf("%X", pass_bytes)
+
+	w := &Wallet{username: username, password: pass_bytes_str, private_key: *priv_key, public_key: priv_key.PublicKey, assets: nil, database_dir: db_loc}
 
 	return w
 }
@@ -79,14 +83,14 @@ func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 	case asset.JPEG:
 		asset_to_add := asset.Create_New_Asset(asset_name, asset.JPEG, file_data)
 		w.assets = append(w.assets, asset_to_add)
-		os.WriteFile(prettyfmt.Sprintf("%s\\%s", w.database_dir, asset_name), file_data, 0444)
+		os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
 
 		prettyfmt.Printf("Successfully added \"%s\" as an asset.\nFormat: JPEG\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
 		return true
 	case asset.PDF:
 		asset_to_add := asset.Create_New_Asset(asset_name, asset.PDF, file_data)
 		w.assets = append(w.assets, asset_to_add)
-		os.WriteFile(prettyfmt.Sprintf("%s\\%s", w.database_dir, asset_name), file_data, 0444)
+		os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
 
 		prettyfmt.Printf("Successfully added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
 		return true
@@ -101,7 +105,7 @@ func (w *Wallet) Remove_Asset(asset_name string) {
 	a := w.get_asset(asset_name)
 
 	if a != nil {
-		os.Remove(prettyfmt.Sprintf("%s\\%s", w.database_dir, asset_name))
+		os.Remove(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name))
 	}
 }
 
@@ -142,7 +146,7 @@ func (w *Wallet) check_asset_exists(asset_name string) bool {
 
 // This function will be used when making transactions
 func (w *Wallet) get_asset(asset_name string) *asset.Asset {
-	asset_path := prettyfmt.Sprintf("%s\\%s", w.database_dir, asset_name)
+	asset_path := prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name)
 
 	if w.check_asset_exists(asset_path) {
 		for _, a := range w.assets {
