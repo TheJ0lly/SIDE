@@ -1,6 +1,8 @@
 Mandatory:
     -Add a CLI package to handle and beautify the CLI, of course :)
 
+    Research Hash Tree / Merkle Tree
+
 After-thought:    
     -Add lookup for data - good for searching through whole blockchain, research how to do it, maybe do a 2-ended search using go-routines, one from start to middle, one from middle to end, let's see :)
     
@@ -10,3 +12,14 @@ After-thought:
     -Add new things required for a blockchain.
 
     -Maybe smart-contracts? 
+
+After meeting 13.09.2023:
+    -change CLI to CLI with flags
+    -hash trees/Merkle trees for block data storage
+        -Redo storage of data
+        -Redo hash function for blocks
+
+        
+    -Hyper Ledger?
+    -More research for bc
+    -New ideas to add?
