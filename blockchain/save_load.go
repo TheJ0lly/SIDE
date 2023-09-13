@@ -52,7 +52,7 @@ func (b *Block) save_state(db_dir string) error {
 		return &generalerrors.JSONMarshalFailed{Object: "Block"}
 	}
 
-	file_path := prettyfmt.Sprintf("%s/%s", db_dir, bie.Current_Hash)
+	file_path := prettyfmt.SPathF(db_dir, bie.Current_Hash)
 
 	err = os.WriteFile(file_path, bytes_to_write, 0666)
 
@@ -102,7 +102,9 @@ func Load_Blockchain() (*BlockChain, error) {
 
 // This function will recreate the block from memory and add it to the current blockchain instance.
 func load_block(block_hash []byte, db_dir string) (*Block, error) {
-	block_file := prettyfmt.Sprintf("%s/%s", db_dir, block_hash)
+	block_hash_str := prettyfmt.Sprintf("%s", block_hash)
+
+	block_file := prettyfmt.SPathF(db_dir, block_hash_str)
 
 	_, err := os.Stat(block_file)
 
@@ -187,7 +189,7 @@ func remove_excess_files(db_dir string, blocks []Block) error {
 		}
 
 		if to_delete {
-			err = os.Remove(prettyfmt.Sprintf("%s/%s", db_dir, f.Name()))
+			err = os.Remove(prettyfmt.SPathF(db_dir, f.Name()))
 
 			if err != nil {
 				return &generalerrors.RemoveFileFailed{File: f.Name()}

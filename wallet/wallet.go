@@ -34,7 +34,7 @@ func Initialize_Wallet(username string, password string, db_loc string) *Wallet 
 	}
 
 	for _, f := range files {
-		os.Remove(prettyfmt.Sprintf("%s/%s", db_loc, f.Name()))
+		os.Remove(prettyfmt.SPathF(db_loc, f.Name()))
 	}
 
 	priv_key, err := rsa.GenerateKey(rand.Reader, key_bit_size)
@@ -84,7 +84,7 @@ func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 	case asset.JPEG:
 		asset_to_add := asset.Create_New_Asset(asset_name, asset.JPEG, file_data)
 		w.assets = append(w.assets, asset_to_add)
-		err = os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
+		err = os.WriteFile(prettyfmt.SPathF(w.database_dir, asset_name), file_data, 0444)
 
 		if err != nil {
 			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
@@ -97,7 +97,7 @@ func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 	case asset.PDF:
 		asset_to_add := asset.Create_New_Asset(asset_name, asset.PDF, file_data)
 		w.assets = append(w.assets, asset_to_add)
-		err = os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
+		err = os.WriteFile(prettyfmt.SPathF(w.database_dir, asset_name), file_data, 0444)
 
 		if err != nil {
 			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
@@ -113,12 +113,21 @@ func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 }
 
 // This function will remove an asset from the wallet.
-func (w *Wallet) Remove_Asset(asset_name string) {
+func (w *Wallet) Remove_Asset(asset_name string) bool {
 	a := w.get_asset(asset_name)
 
 	if a != nil {
-		os.Remove(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name))
+		err := os.Remove(prettyfmt.SPathF(w.database_dir, asset_name))
+
+		if err != nil {
+			generalerrors.HandleError(err)
+			return false
+		}
+	} else {
+		return false
 	}
+
+	return true
 }
 
 func (w *Wallet) Get_Username() string {
@@ -158,9 +167,7 @@ func (w *Wallet) check_asset_exists(asset_name string) bool {
 
 // This function will be used when making transactions
 func (w *Wallet) get_asset(asset_name string) *asset.Asset {
-	asset_path := prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name)
-
-	if w.check_asset_exists(asset_path) {
+	if w.check_asset_exists(asset_name) {
 		for _, a := range w.assets {
 			if a.Get_Name() == asset_name {
 				return a
@@ -168,6 +175,10 @@ func (w *Wallet) get_asset(asset_name string) *asset.Asset {
 		}
 	}
 
-	prettyfmt.Printf("No asset with the name \"%s\" can be found in your wallet\n", prettyfmt.RED, asset_name)
+	prettyfmt.ErrorF("No asset with the name \"%s\" can be found in your wallet\n", asset_name)
 	return nil
+}
+
+func (w *Wallet) Get_Assets() []*asset.Asset {
+	return w.assets
 }

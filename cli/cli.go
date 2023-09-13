@@ -119,7 +119,9 @@ func ScanChoice() int {
 
 	val, err := strconv.Atoi(s.Text())
 
-	if err != nil && s.Text() != "\n" {
+	prettyfmt.CPrintf("%s\n", prettyfmt.BLUE, s.Text())
+
+	if err != nil && s.Text() != "" {
 		prettyfmt.ErrorF("Error in parsing the choice: %s\n", err.Error())
 		return -1
 	}
@@ -152,4 +154,29 @@ func Add_Asset(w *wallet.Wallet) {
 	prettyfmt.Scanln(&asset_init_loc)
 
 	w.Add_Asset(asset_name, asset_init_loc)
+
+	prettyfmt.Print("Press enter to go back to the main menu...\n")
+	ScanChoice()
+}
+
+func Remove_Asset(w *wallet.Wallet) {
+	var asset_name string
+
+	prettyfmt.Print("===== REMOVE ASSET =====\n\n")
+
+	assets := w.Get_Assets()
+
+	prettyfmt.Print("Your assets:\n")
+
+	for _, a := range assets {
+		prettyfmt.Printf("  ---%s\n", a.Get_Name())
+	}
+
+	prettyfmt.Print("What asset do you want to remove?\n->")
+	prettyfmt.Scanln(&asset_name)
+
+	w.Remove_Asset(asset_name)
+
+	prettyfmt.Print("Press enter to go back to the main menu...\n")
+	ScanChoice()
 }

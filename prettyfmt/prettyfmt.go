@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"github.com/TheJ0lly/GoChain/osspecifics"
 )
 
 type COLOR string
@@ -188,4 +190,17 @@ func WarningF(format string, a ...any) {
 		}
 	}
 	fmt.Print(RESET_COLORS)
+}
+
+func SPathF(format ...string) string {
+	var string_to_return string
+
+	for i := 0; i < len(format); i++ {
+		string_to_return += format[i]
+
+		if i != len(format)-1 {
+			string_to_return += osspecifics.PATH_SEP
+		}
+	}
+	return string_to_return
 }

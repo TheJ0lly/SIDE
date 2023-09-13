@@ -96,7 +96,7 @@ func Load_Wallet() (*Wallet, error) {
 		}
 
 		if !continue_to_recreate {
-			file_to_remove := prettyfmt.Sprintf("%s/%s", wie.Database_Dir, f.Name())
+			file_to_remove := prettyfmt.SPathF(wie.Database_Dir, f.Name())
 			err = os.Remove(file_to_remove)
 
 			if err != nil {
@@ -106,7 +106,7 @@ func Load_Wallet() (*Wallet, error) {
 			continue
 		}
 
-		file_to_recreate := prettyfmt.Sprintf("%s/%s", wie.Database_Dir, f.Name())
+		file_to_recreate := prettyfmt.SPathF(wie.Database_Dir, f.Name())
 
 		bytes_read, err = os.ReadFile(file_to_recreate)
 

@@ -23,7 +23,7 @@ func Initialize_BlockChain(db_loc string) (*BlockChain, error) {
 	}
 
 	for _, f := range files {
-		file_name := prettyfmt.Sprintf("%s/%s", db_loc, f.Name())
+		file_name := prettyfmt.SPathF(db_loc, f.Name())
 		err = os.Remove(file_name)
 
 		if err != nil {

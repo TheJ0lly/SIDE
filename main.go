@@ -5,7 +5,6 @@ import (
 
 	"github.com/TheJ0lly/GoChain/cli"
 	"github.com/TheJ0lly/GoChain/generalerrors"
-	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 func main() {
@@ -22,11 +21,9 @@ func main() {
 		case 1:
 			//Add an asset in the wallet.
 			cli.Add_Asset(w)
-
-			prettyfmt.Print("Press enter to go back to the main menu...\n")
-			cli.ScanChoice()
 		case 2:
 			//Remove an asset from the wallet.
+			cli.Remove_Asset(w)
 		case 3:
 			err := bc.Save_State()
 
