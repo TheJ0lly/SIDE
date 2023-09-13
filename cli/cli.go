@@ -174,7 +174,7 @@ func Remove_Asset(w *wallet.Wallet) {
 	prettyfmt.Print("Your assets:\n")
 
 	for _, a := range assets {
-		prettyfmt.Printf("  ---%s\n", a.Get_Name())
+		prettyfmt.Printf("  -%s\n", a.Get_Name())
 	}
 
 	prettyfmt.Print("What asset do you want to remove?\n->")
@@ -224,6 +224,8 @@ func Add_To_Blockchain_Test(w *wallet.Wallet, bc *blockchain.BlockChain) {
 	prettyfmt.Scanln(&dest_user)
 
 	bc.Add_Data_Test(w.Get_Username(), a, dest_user)
+
+	w.Remove_Asset(a.Get_Name())
 
 	prettyfmt.Print("Press enter to go back to the main menu...\n")
 	ScanChoice()

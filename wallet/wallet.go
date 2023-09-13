@@ -127,6 +127,14 @@ func (w *Wallet) Remove_Asset(asset_name string) bool {
 		return false
 	}
 
+	// This removes the asset from the slice of assets
+	for i, as := range w.assets {
+		if as == a {
+			w.assets = append(w.assets[:i], w.assets[i+1:]...)
+			break
+		}
+	}
+
 	return true
 }
 
