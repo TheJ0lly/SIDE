@@ -66,6 +66,11 @@ func (bcr *BlockCapacityReached) Error() string {
 	return prettyfmt.Sprintf("Block capacity of %d has been reached! Need new block!", bcr.Capacity)
 }
 
+func (bcr *BlockCapacityReached) Is(target error) bool {
+	_, ok := target.(*BlockCapacityReached)
+	return ok
+}
+
 func (rdf *ReadDirFailed) Error() string {
 	return prettyfmt.Sprintf("Failed to read directory: %s", rdf.Dir)
 }

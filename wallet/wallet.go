@@ -179,6 +179,16 @@ func (w *Wallet) get_asset(asset_name string) *asset.Asset {
 	return nil
 }
 
-func (w *Wallet) Get_Assets() []*asset.Asset {
+func (w *Wallet) Get_All_Assets() []*asset.Asset {
 	return w.assets
+}
+
+func (w *Wallet) Get_Asset(asset_name string) *asset.Asset {
+	for _, a := range w.assets {
+		if a.Get_Name() == asset_name {
+			return a
+		}
+	}
+
+	return nil
 }

@@ -36,8 +36,3 @@ func check_if_genesis(b *Block) bool {
 	}
 	return b.meta_data[0] == genesis_name
 }
-
-// This function will return the last block from the blockchain
-func (bc *BlockChain) get_last_block() *Block {
-	return bc.last_block
-}

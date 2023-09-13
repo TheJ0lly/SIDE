@@ -5,7 +5,6 @@ import "github.com/TheJ0lly/GoChain/generalerrors"
 const (
 	genesis_name        = "GenesisBlockIsHereAndNotAnywhereElseAndDoNotGoLookForTheValueBecauseYouWillNotFindIt"
 	block_data_capacity = 3
-	data_length         = 10
 )
 
 type Block struct {
@@ -29,15 +28,10 @@ func create_new_block(b Block) *Block {
 // This function will add data to a block if possible, otherwise it will return an error.
 //
 //	return values:
-//	-DataTooBig - meaning that the data is too big, thus it will require adjustment.
 //	-BlockCapacityReached - meaning that the current block capacity has been reached and a new block is needed for the addition and storage of the data.
 func (b *Block) add_data_to_block(data string) error {
-	if len(data) > data_length {
-		return &generalerrors.DataTooBig{Data: data}
-	}
-
 	if len(b.meta_data) == block_data_capacity || check_if_genesis(b) {
-		return &generalerrors.BlockCapacityReached{}
+		return &generalerrors.BlockCapacityReached{Capacity: block_data_capacity}
 	}
 
 	b.meta_data = append(b.meta_data, data)

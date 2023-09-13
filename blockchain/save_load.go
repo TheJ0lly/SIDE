@@ -95,7 +95,7 @@ func Load_Blockchain() (*BlockChain, error) {
 		return nil, err
 	}
 
-	bc := &BlockChain{database_dir: bcie.Database_Dir, last_block: &bc_blocks[0], blocks: bc_blocks}
+	bc := &BlockChain{database_dir: bcie.Database_Dir, last_block: bc_blocks[0], blocks: bc_blocks}
 
 	return bc, nil
 }
@@ -132,7 +132,7 @@ func load_block(block_hash []byte, db_dir string) (*Block, error) {
 }
 
 // This function will recreate all the blocks, using only the last hash, and directory of the database.
-func rebuild_blockchain(last_block_hash []byte, db_dir string) ([]Block, error) {
+func rebuild_blockchain(last_block_hash []byte, db_dir string) ([]*Block, error) {
 	files, err := os.ReadDir(db_dir)
 
 	if err != nil {
@@ -143,7 +143,7 @@ func rebuild_blockchain(last_block_hash []byte, db_dir string) ([]Block, error) 
 		return nil, &generalerrors.BlockChainDBEmpty{Dir: db_dir}
 	}
 
-	blocks := make([]Block, 0)
+	blocks := make([]*Block, 0)
 	for {
 		nb, err := load_block(last_block_hash, db_dir)
 
@@ -151,7 +151,7 @@ func rebuild_blockchain(last_block_hash []byte, db_dir string) ([]Block, error) 
 			return nil, err
 		}
 
-		blocks = append(blocks, *nb)
+		blocks = append(blocks, nb)
 
 		if len(nb.prev_hash) == 0 {
 			break
@@ -164,7 +164,7 @@ func rebuild_blockchain(last_block_hash []byte, db_dir string) ([]Block, error) 
 }
 
 // This function will remove any files that cannot be reconstructed from the save of the blockchain.
-func remove_excess_files(db_dir string, blocks []Block) error {
+func remove_excess_files(db_dir string, blocks []*Block) error {
 	files, err := os.ReadDir(db_dir)
 
 	if err != nil {

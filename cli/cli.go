@@ -135,12 +135,16 @@ func Display_Main_Menu() {
 	prettyfmt.Print("   Main Menu\n\n")
 	prettyfmt.Print("1. Add Asset\n")
 	prettyfmt.Print("2. Remove Asset\n")
-	prettyfmt.Print("3. Save\n")
-	prettyfmt.Print("4. Exit\n")
+	prettyfmt.Print("3. View Assets\n")
+	prettyfmt.Print("4. Add to Blockchain (Just for testing as of now)\n")
+	prettyfmt.Print("5. View Blockchain (Not working now)\n")
+	prettyfmt.Print("6. Save\n")
+	prettyfmt.Print("7. Exit\n")
 
 }
 
 func Add_Asset(w *wallet.Wallet) {
+	Clear_Screen()
 	var asset_name string
 	var asset_init_loc string
 
@@ -160,11 +164,12 @@ func Add_Asset(w *wallet.Wallet) {
 }
 
 func Remove_Asset(w *wallet.Wallet) {
+	Clear_Screen()
 	var asset_name string
 
 	prettyfmt.Print("===== REMOVE ASSET =====\n\n")
 
-	assets := w.Get_Assets()
+	assets := w.Get_All_Assets()
 
 	prettyfmt.Print("Your assets:\n")
 
@@ -176,6 +181,55 @@ func Remove_Asset(w *wallet.Wallet) {
 	prettyfmt.Scanln(&asset_name)
 
 	w.Remove_Asset(asset_name)
+
+	prettyfmt.Print("Press enter to go back to the main menu...\n")
+	ScanChoice()
+}
+
+func View_Assets(w *wallet.Wallet) {
+	Clear_Screen()
+	assets := w.Get_All_Assets()
+
+	prettyfmt.Print("Your assets:\n")
+
+	for _, a := range assets {
+		prettyfmt.Printf("  -%s\n", a.Get_Name())
+	}
+
+	prettyfmt.Print("Press enter to go back to the main menu...\n")
+	ScanChoice()
+}
+
+func Add_To_Blockchain_Test(w *wallet.Wallet, bc *blockchain.BlockChain) {
+	Clear_Screen()
+	var asset_name string
+	var dest_user string
+
+	prettyfmt.Print("===== ADD TO BLOCKCHAIN =====\n\n")
+
+	prettyfmt.Print("What asset do you want to transaction?\n->")
+	prettyfmt.Scanln(&asset_name)
+
+	a := w.Get_Asset(asset_name)
+
+	if a == nil {
+		prettyfmt.ErrorF("There is no asset named \"%s\" in your wallet!\n")
+		prettyfmt.ErrorF("Failed to add \"%s\" to blockchain!\n")
+		return
+	}
+
+	prettyfmt.Print("Who is the receiving user?\n->")
+	prettyfmt.Scanln(&dest_user)
+
+	bc.Add_Data_Test(w.Get_Username(), a, dest_user)
+
+	prettyfmt.Print("Press enter to go back to the main menu...\n")
+	ScanChoice()
+}
+
+func View_Blockchain_Test(bc *blockchain.BlockChain) {
+	Clear_Screen()
+	bc.View_Blockchain()
 
 	prettyfmt.Print("Press enter to go back to the main menu...\n")
 	ScanChoice()
