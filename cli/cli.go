@@ -213,8 +213,8 @@ func Add_To_Blockchain_Test(w *wallet.Wallet, bc *blockchain.BlockChain) {
 	a := w.Get_Asset(asset_name)
 
 	if a == nil {
-		prettyfmt.ErrorF("There is no asset named \"%s\" in your wallet!\n")
-		prettyfmt.ErrorF("Failed to add \"%s\" to blockchain!\n")
+		prettyfmt.ErrorF("There is no asset named \"%s\" in your wallet!\n", asset_name)
+		prettyfmt.ErrorF("Failed to add \"%s\" to blockchain!\n", asset_name)
 		return
 	}
 
