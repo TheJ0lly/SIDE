@@ -85,7 +85,22 @@ func CPrintf(format string, color COLOR, a ...any) {
 
 // It uses CPrintf under the hood, and just prints the text in a RED color.
 func ErrorF(format string, a ...any) {
-	CPrintf(format, RED, a)
+	fmt.Print(RED)
+	var args_index int = 0
+	for i := 0; i < len(format); i++ {
+		if format[i] == '%' && format[i+1] == 's' {
+			fmt.Printf("%s", a[args_index])
+			args_index++
+			i += 1
+		} else if format[i] == '%' && format[i+1] == 'd' {
+			fmt.Printf("%d", a[args_index])
+			args_index++
+			i += 1
+		} else {
+			fmt.Printf("%c", format[i])
+		}
+	}
+	fmt.Print(RESET_COLORS)
 }
 
 // Exact same use as the fmt.Sprintf, just add the color for the text as the second parametr, then continue as usual.
@@ -96,7 +111,25 @@ func CSprintf(format string, color COLOR, a ...any) string {
 		string_to_return += string(color)
 	}
 
-	string_to_return += Sprintf(format, a)
+	var args_index int = 0
+
+	for i := 0; i < len(format); i++ {
+		if format[i] == '%' && format[i+1] == 's' {
+			string_to_return += fmt.Sprintf("%s", a[args_index])
+			args_index++
+			i += 1
+		} else if format[i] == '%' && format[i+1] == 'd' {
+			string_to_return += fmt.Sprintf("%d", a[args_index])
+			args_index++
+			i += 1
+		} else if format[i] == '%' && format[i+1] == 'X' {
+			string_to_return += fmt.Sprintf("%X", a[args_index])
+			args_index++
+			i += 1
+		} else {
+			string_to_return += string(format[i])
+		}
+	}
 
 	if color != NO_COLOR {
 		string_to_return += string(RESET_COLORS)
@@ -136,4 +169,23 @@ func Scanln(str *string) {
 	s.Scan()
 
 	*str += s.Text()
+}
+
+func WarningF(format string, a ...any) {
+	fmt.Print(YELLOW)
+	var args_index int = 0
+	for i := 0; i < len(format); i++ {
+		if format[i] == '%' && format[i+1] == 's' {
+			fmt.Printf("%s", a[args_index])
+			args_index++
+			i += 1
+		} else if format[i] == '%' && format[i+1] == 'd' {
+			fmt.Printf("%d", a[args_index])
+			args_index++
+			i += 1
+		} else {
+			fmt.Printf("%c", format[i])
+		}
+	}
+	fmt.Print(RESET_COLORS)
 }

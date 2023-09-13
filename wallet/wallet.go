@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
+	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
@@ -56,19 +57,19 @@ func Initialize_Wallet(username string, password string, db_loc string) *Wallet 
 func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 
 	if w.check_asset_exists(asset_name) {
-		prettyfmt.Printf("There is already an asset with this name - \"%s\"\n", prettyfmt.RED, asset_name)
+		prettyfmt.ErrorF("There is already an asset with this name - \"%s\"\n", asset_name)
 		return false
 	}
 
 	temp, err := os.Stat(file_location)
 
 	if os.IsNotExist(err) {
-		prettyfmt.Printf("Asset location does not exist! - \"%s\"\n", prettyfmt.RED, file_location)
+		prettyfmt.ErrorF("Asset location does not exist! - \"%s\"\n", file_location)
 		return false
 	}
 
 	if temp.IsDir() {
-		prettyfmt.Printf("Asset is a folder! - \"%s\"\n", prettyfmt.RED, file_location)
+		prettyfmt.ErrorF("Asset is a folder! - \"%s\"\n", file_location)
 		return false
 	}
 
@@ -83,19 +84,30 @@ func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 	case asset.JPEG:
 		asset_to_add := asset.Create_New_Asset(asset_name, asset.JPEG, file_data)
 		w.assets = append(w.assets, asset_to_add)
-		os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
+		err = os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
 
-		prettyfmt.Printf("Successfully added \"%s\" as an asset.\nFormat: JPEG\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
+		if err != nil {
+			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
+			generalerrors.HandleError(err)
+			return false
+		}
+
+		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: JPEG\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
 		return true
 	case asset.PDF:
 		asset_to_add := asset.Create_New_Asset(asset_name, asset.PDF, file_data)
 		w.assets = append(w.assets, asset_to_add)
-		os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
+		err = os.WriteFile(prettyfmt.Sprintf("%s/%s", w.database_dir, asset_name), file_data, 0444)
 
-		prettyfmt.Printf("Successfully added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
+		if err != nil {
+			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
+			generalerrors.HandleError(err)
+		}
+
+		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
 		return true
 	default:
-		prettyfmt.Printf("Failed to add \"%s\" as an asset.\nError: Unknown format!\n", prettyfmt.RED, asset_name)
+		prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: Unknown format!\n", asset_name)
 		return false
 	}
 }

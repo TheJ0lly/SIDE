@@ -1,7 +1,11 @@
 package cli
 
 import (
+	"bufio"
 	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
 
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
@@ -74,4 +78,78 @@ func Login_Or_Signup() (*blockchain.BlockChain, *wallet.Wallet) {
 	prettyfmt.CPrintf("Welcome, %s!\n", prettyfmt.GREEN, w.Get_Username())
 
 	return bc, w
+}
+
+func display_title() {
+	Clear_Screen()
+
+	prettyfmt.Print("#########    #####   ######  ######       #######         #######\n")
+	prettyfmt.Print("#########  ##     ##   ####  ####         ###   ###      ##      \n")
+	prettyfmt.Print("   ###     ##     ##    ###  ###          ###    ###    ##       \n")
+	prettyfmt.Print("   ###     ##     ##     ######           #######      ##        \n")
+	prettyfmt.Print("   ###     ##     ##      ####            ###    ###   ##        \n")
+	prettyfmt.Print("   ###     ##     ##      ####            ###     ###   ##       \n")
+	prettyfmt.Print("   ###     ##     ##      ####            ###    ###     ##      \n")
+	prettyfmt.Print("   ###       #####        ####            #######         #######\n")
+
+	prettyfmt.Print("\n\n\n")
+}
+
+func Clear_Screen() {
+	if runtime.GOOS == "windows" {
+		clear_screen_err := exec.Command("powershell", "clear").Run()
+
+		if clear_screen_err != nil {
+			prettyfmt.ErrorF("Error in displaying the menu: %s\n", clear_screen_err.Error())
+			return
+		}
+	} else if runtime.GOOS == "linux" {
+		clear_screen_err := exec.Command("clear").Run()
+
+		if clear_screen_err != nil {
+			prettyfmt.ErrorF("Error in displaying the menu: %s\n", clear_screen_err.Error())
+			return
+		}
+	}
+}
+
+func ScanChoice() int {
+	s := bufio.NewScanner(os.Stdin)
+	s.Scan()
+
+	val, err := strconv.Atoi(s.Text())
+
+	if err != nil && s.Text() != "\n" {
+		prettyfmt.ErrorF("Error in parsing the choice: %s\n", err.Error())
+		return -1
+	}
+
+	return val
+
+}
+
+func Display_Main_Menu() {
+	display_title()
+	prettyfmt.Print("   Main Menu\n\n")
+	prettyfmt.Print("1. Add Asset\n")
+	prettyfmt.Print("2. Remove Asset\n")
+	prettyfmt.Print("3. Save\n")
+	prettyfmt.Print("4. Exit\n")
+
+}
+
+func Add_Asset(w *wallet.Wallet) {
+	var asset_name string
+	var asset_init_loc string
+
+	prettyfmt.Print("===== ADD ASSET =====\n\n")
+	prettyfmt.Print("What is the new name of the asset you want to add?\n->")
+	prettyfmt.Scanln(&asset_name)
+
+	prettyfmt.Print("\n")
+
+	prettyfmt.Print("Location of the file on your machine?\n->")
+	prettyfmt.Scanln(&asset_init_loc)
+
+	w.Add_Asset(asset_name, asset_init_loc)
 }

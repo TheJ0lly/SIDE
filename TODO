@@ -1,20 +1,12 @@
 Mandatory:
-    -Add Wallets (Users)
-    
     -Add a CLI package to handle and beautify the CLI, of course :)
 
-After-thought:
-    -Add serialize/deserialize mechanism for database
-    
+After-thought:    
     -Add lookup for data - good for searching through whole blockchain, research how to do it, maybe do a 2-ended search using go-routines, one from start to middle, one from middle to end, let's see :)
     
     -Add way to add & remove & manage users to the network
         -Research how to synchronize the database for new users.
     
-    -Add new things required for a blockchain
+    -Add new things required for a blockchain.
 
-
-
-
-
-
+    -Maybe smart-contracts? 

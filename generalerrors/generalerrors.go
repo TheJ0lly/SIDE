@@ -74,7 +74,7 @@ func (rff *ReadFileFailed) Error() string {
 	if rff.File == "./bcs" {
 		return "There is no save file of the blockchain!"
 	} else if rff.File == "./ws" {
-		return "There is no save file of the blockchain!"
+		return "There is no save file of the wallet!"
 	}
 	return prettyfmt.Sprintf("Failed to read file: %s", rff.File)
 }

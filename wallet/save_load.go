@@ -74,7 +74,7 @@ func Load_Wallet() (*Wallet, error) {
 	assets_to_recreate := []string{}
 
 	if asset_len != len(files) {
-		prettyfmt.CPrint("Some assets have been corrupted or deleted! Recreating the assets that can be found...\n", prettyfmt.YELLOW)
+		prettyfmt.WarningF("Some assets have been corrupted or deleted! Recreating the assets that can be found...\n")
 
 		assets_to_recreate = append(assets_to_recreate, wie.Assets...)
 	}
@@ -117,7 +117,7 @@ func Load_Wallet() (*Wallet, error) {
 		ft := asset.Determine_Asset_Type(bytes_read)
 
 		if ft == asset.UNKNOWN {
-			prettyfmt.CPrintf("This asset may have been corrupted, changed, or added manually! Skipping - %s\n", prettyfmt.YELLOW, f.Name())
+			prettyfmt.WarningF("This asset may have been corrupted, changed, or added manually! Skipping - %s\n", f.Name())
 			continue
 		}
 
