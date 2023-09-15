@@ -15,9 +15,9 @@ After-thought:
 
 After meeting 13.09.2023:
     -change CLI to CLI with flags
-    -hash trees/Merkle trees for block data storage
-        -Redo storage of data
-        -Redo hash function for blocks
+    -hash trees/Merkle trees for block data storage   (ROOT Hash = Block hash)
+        -Redo storage of data                         (Intermediary hashes for transaction - Sender public key + Destination public key)?
+        -Redo hash function for blocks                (Leaf hash = IDHFT + Data)
 
         
     -Hyper Ledger?
