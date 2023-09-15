@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"errors"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
@@ -23,6 +22,16 @@ func Initialize_BlockChain(db_loc string) (*BlockChain, error) {
 		return nil, &generalerrors.ReadDirFailed{Dir: db_loc}
 	}
 
+	if len(files) > 0 {
+		prettyfmt.WarningF("Folder %s contains files! Do you want to delete them?[y\\n]\n", db_loc)
+		var choice string
+		prettyfmt.Scanln(&choice)
+
+		if choice != "y" {
+			return nil, &generalerrors.BlockchainDBHasItems{Dir: db_loc}
+		}
+	}
+
 	for _, f := range files {
 		file_name := prettyfmt.SPathF(db_loc, f.Name())
 		err = os.Remove(file_name)
@@ -41,25 +50,7 @@ func Initialize_BlockChain(db_loc string) (*BlockChain, error) {
 }
 
 // This function will add some data onto the blockchain.
-func (bc *BlockChain) Add_Data(data string) error {
-	lb := bc.last_block
-
-	err := lb.add_data_to_block(data)
-
-	if err != nil && errors.Is(err, &generalerrors.BlockCapacityReached{Capacity: block_data_capacity}) {
-		nb := create_new_block(*lb)
-		nb.add_data_to_block(data)
-		nb.save_state(bc.database_dir)
-		bc.blocks = append(bc.blocks, nb)
-		bc.last_block = nb
-		return nil
-	}
-
-	lb.save_state(bc.database_dir)
-	return nil
-}
-
-func (bc *BlockChain) Add_Data_Test(from string, asset *asset.Asset, destination string) {
+func (bc *BlockChain) Add_Data(from string, asset *asset.Asset, destination string) {
 	lb := bc.last_block
 
 	var meta_data string = from + "_" + asset.Get_Name() + "_" + destination
@@ -76,36 +67,4 @@ func (bc *BlockChain) Add_Data_Test(from string, asset *asset.Asset, destination
 	}
 
 	lb.save_state(bc.database_dir)
-}
-
-func (bc *BlockChain) View_Blockchain() {
-	lb := bc.last_block
-
-	for {
-		prettyfmt.Printf("Block Hash: %s\n", lb.curr_hash)
-		if !check_if_genesis(lb) {
-			prettyfmt.Printf("Meta Data:\n")
-			for _, md := range lb.meta_data {
-				prettyfmt.Printf("    %s\n", md)
-			}
-		}
-
-		if string(lb.prev_hash) == "" {
-			break
-		}
-
-		prettyfmt.Print("\n\n")
-
-		lb = bc.get_block(lb.prev_hash)
-	}
-
-}
-
-func (bc *BlockChain) get_block(block_hash []byte) *Block {
-	for _, b := range bc.blocks {
-		if string(b.curr_hash) == string(block_hash) {
-			return b
-		}
-	}
-	return nil
 }

@@ -60,6 +60,14 @@ type BlockMissing struct {
 	Block_Hash string
 }
 
+type BlockchainDBHasItems struct {
+	Dir string
+}
+
+type WalletDBHasItems struct {
+	Dir string
+}
+
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
@@ -110,6 +118,14 @@ func (bcdbe *BlockChainDBEmpty) Error() string {
 
 func (bm *BlockMissing) Error() string {
 	return prettyfmt.Sprintf("There is no block with the hash: %s!", bm.Block_Hash)
+}
+
+func (bc *BlockchainDBHasItems) Error() string {
+	return prettyfmt.Sprintf("Folder used for Blockchain contains files! Directory: %s\n", bc.Dir)
+}
+
+func (w *WalletDBHasItems) Error() string {
+	return prettyfmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s\n", w.Dir)
 }
 
 // ======== HANDLE ERROR FUNCTION ========

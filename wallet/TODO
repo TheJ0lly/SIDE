@@ -1,9 +1,0 @@
--Add new functionality to the wallet:
-    -initiate transaction
-    -accept transaction --- (maybe?) - Maybe not needed, because if the transaction is verified and initiated it just executes?
-    -sign & verify
-
-
--Add Transaction type instead of string in Block.meta_data
-
--Should I add money to variable to Wallet, to hold amount?

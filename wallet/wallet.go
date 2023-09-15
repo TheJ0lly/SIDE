@@ -25,12 +25,22 @@ type Wallet struct {
 }
 
 // This function will create a wallet.
-func Initialize_Wallet(username string, password string, db_loc string) *Wallet {
+func Initialize_Wallet(username string, password string, db_loc string) (*Wallet, error) {
 	files, err := os.ReadDir(db_loc)
 
 	if err != nil {
 		prettyfmt.ErrorF("%s\n", err.Error())
-		return nil
+		return nil, &generalerrors.ReadDirFailed{Dir: db_loc}
+	}
+
+	if len(files) > 0 {
+		prettyfmt.WarningF("Folder %s contains files! Do you want to delete them?[y\\n]\n", db_loc)
+		var choice string
+		prettyfmt.Scanln(&choice)
+
+		if choice != "y" {
+			return nil, &generalerrors.WalletDBHasItems{Dir: db_loc}
+		}
 	}
 
 	for _, f := range files {
@@ -41,7 +51,7 @@ func Initialize_Wallet(username string, password string, db_loc string) *Wallet 
 
 	if err != nil {
 		prettyfmt.ErrorF("%s\n", err.Error())
-		return nil
+		return nil, err
 	}
 
 	pass_bytes := sha256.Sum256([]byte(password))
@@ -50,7 +60,7 @@ func Initialize_Wallet(username string, password string, db_loc string) *Wallet 
 
 	w := &Wallet{username: username, password: pass_bytes_str, private_key: *priv_key, public_key: priv_key.PublicKey, assets: nil, database_dir: db_loc}
 
-	return w
+	return w, nil
 }
 
 // This function will add an asset to the wallet.
@@ -153,50 +163,4 @@ func (w *Wallet) Confirm_Password(pass string) bool {
 	}
 
 	return false
-}
-
-// This function
-func (w *Wallet) check_asset_exists(asset_name string) bool {
-	files, err := os.ReadDir(w.database_dir)
-
-	if err != nil {
-		prettyfmt.ErrorF("%s\n", err.Error())
-		return true
-	}
-
-	for _, file := range files {
-		if asset_name == file.Name() {
-			return true
-		}
-	}
-
-	return false
-}
-
-// This function will be used when making transactions
-func (w *Wallet) get_asset(asset_name string) *asset.Asset {
-	if w.check_asset_exists(asset_name) {
-		for _, a := range w.assets {
-			if a.Get_Name() == asset_name {
-				return a
-			}
-		}
-	}
-
-	prettyfmt.ErrorF("No asset with the name \"%s\" can be found in your wallet\n", asset_name)
-	return nil
-}
-
-func (w *Wallet) Get_All_Assets() []*asset.Asset {
-	return w.assets
-}
-
-func (w *Wallet) Get_Asset(asset_name string) *asset.Asset {
-	for _, a := range w.assets {
-		if a.Get_Name() == asset_name {
-			return a
-		}
-	}
-
-	return nil
 }

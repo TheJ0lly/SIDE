@@ -1,11 +1,8 @@
 package cli
 
 import (
-	"bufio"
+	"flag"
 	"os"
-	"os/exec"
-	"runtime"
-	"strconv"
 
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
@@ -13,228 +10,94 @@ import (
 	"github.com/TheJ0lly/GoChain/wallet"
 )
 
-// This function will handle the login/signup proccess of the user. If either the Wallet or the Blockchain could not be initialized it exits the program.
-// Otherwise, it returns the blockchain and wallet pointers.
-func Login_Or_Signup() (*blockchain.BlockChain, *wallet.Wallet) {
-	bc, err := blockchain.Load_Blockchain()
+const (
+	NO_VALUE_PASSED          = "NO_VALUE_PASSED"
+	NO_PASS_OR_USER          = 1
+	LOAD_BC_NO_DB_PASSED     = 2
+	LOAD_WALLET_NO_DB_PASSED = 3
+	FAILED_TO_LOAD_BC        = 4
+	FAILED_TO_LOAD_WALLET    = 5
+)
 
-	if err != nil {
-		generalerrors.HandleError(err)
+type Flag_Values struct {
+	Username       string
+	Password       string
+	Blockchain_Dir string
+	Wallet_Dir     string
+	LoadBC         bool
+	LoadWallet     bool
+}
 
-		var new_blockchain_db_loc string
+func Display_Help() {
+	prettyfmt.ErrorF("Usage: <exec> (-u <string> & -p <string>) [ACTIONS]\n\n")
 
-		prettyfmt.CPrint("Hello, there! You will soon become a new node of the Toy Blockchain! Where do you want your new database to be?\n", prettyfmt.GREEN)
+	prettyfmt.Print("  -h          \n      Display help menu.\n\n")
+	prettyfmt.Print("  -u <string> \n      Input the username of the wallet you want to log in.\n\n")
+	prettyfmt.Print("  -p <string> \n      Input the password of the wallet you want to log in.\n\n")
+	prettyfmt.Print("  -lb         \n      Load the last blockchain save. Otherwise create new instance for every run.\n\n")
+	prettyfmt.Print("  -lw         \n      Load the last wallet save. Otherwise create new instance for every run.\n\n")
+	prettyfmt.Print("  -db <string>\n      Input the location of the database of the blockchain. Only use when creating new instance, otherwise ineffective.\n\n")
+	prettyfmt.Print("  -da <string>\n      Input the location of the database of the wallet. Only use when creating new instance, otherwise ineffective.\n\n")
 
-		prettyfmt.Scanln(&new_blockchain_db_loc)
+}
 
-		bc, err = blockchain.Initialize_BlockChain(new_blockchain_db_loc)
+func Init_Flags() *Flag_Values {
+	U := flag.String("u", NO_VALUE_PASSED, "")
+	P := flag.String("p", NO_VALUE_PASSED, "")
+	Load_BC := flag.Bool("lb", false, "")
+	Load_Wallet := flag.Bool("lw", false, "")
+	DB_BC := flag.String("db", NO_VALUE_PASSED, "")
+	DB_ASSETS := flag.String("da", NO_VALUE_PASSED, "")
+
+	flag.Usage = Display_Help
+
+	flag.Parse()
+
+	if *U == NO_VALUE_PASSED || *P == NO_VALUE_PASSED {
+		Display_Help()
+		os.Exit(NO_PASS_OR_USER)
+	}
+
+	if !*Load_BC && *DB_BC == NO_VALUE_PASSED {
+		prettyfmt.ErrorF("Cannot start new instance of a Blockchain without a folder for the database!\n\n")
+		Display_Help()
+		os.Exit(LOAD_BC_NO_DB_PASSED)
+	}
+
+	if !*Load_Wallet && *DB_ASSETS == NO_VALUE_PASSED {
+		prettyfmt.ErrorF("Cannot start new instance of a Wallet without a folder for the database!\n\n")
+		Display_Help()
+		os.Exit(LOAD_WALLET_NO_DB_PASSED)
+	}
+
+	return &Flag_Values{Username: *U, Password: *P, Blockchain_Dir: *DB_BC, Wallet_Dir: *DB_ASSETS, LoadBC: *Load_BC, LoadWallet: *Load_Wallet}
+
+}
+
+func Execute(fv *Flag_Values) {
+	if fv.LoadBC {
+		_, err := blockchain.Load_Blockchain()
 
 		if err != nil {
-			generalerrors.HandleError(err, &generalerrors.All_Errors_Exit{Exit_Code: 1})
-		}
-
-		prettyfmt.CPrint("Fantastic! You have become a node of the Toy Blockchain!\n", prettyfmt.GREEN)
-	} else {
-		prettyfmt.CPrint("Found save file!\n", prettyfmt.GREEN)
-	}
-
-	w, err := wallet.Load_Wallet()
-
-	if err != nil {
-		generalerrors.HandleError(err)
-
-		var new_username string
-		var new_password string
-		var new_db_loc string
-
-		prettyfmt.CPrint("Where do you want to store your new wallet?\n", prettyfmt.GREEN)
-		prettyfmt.Scanln(&new_db_loc)
-
-		prettyfmt.CPrint("What is your new username?\n", prettyfmt.GREEN)
-		prettyfmt.Scanln(&new_username)
-
-		prettyfmt.CPrint("What is your new password?\n", prettyfmt.GREEN)
-		prettyfmt.Scanln(&new_password)
-
-		w = wallet.Initialize_Wallet(new_username, new_password, new_db_loc)
-
-		if w == nil {
-			generalerrors.HandleError(err, &generalerrors.All_Errors_Exit{Exit_Code: 2})
+			generalerrors.HandleError(err)
+			prettyfmt.ErrorF("Failed to load blockchain!\n")
+			os.Exit(FAILED_TO_LOAD_BC)
 		}
 	} else {
-		prettyfmt.CPrint("Found save file!\n", prettyfmt.GREEN)
+		prettyfmt.CPrintf("Starting creating new blockchain!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.Blockchain_Dir)
+		blockchain.Initialize_BlockChain(fv.Blockchain_Dir)
+	}
 
-		prettyfmt.CPrintf("Found wallet for user: %s!\nEnter password to confirm identity:\n", prettyfmt.BLUE, w.Get_Username())
+	if fv.LoadWallet {
+		_, err := wallet.Load_Wallet()
 
-		var password string
-		prettyfmt.Scanln(&password)
-
-		if !w.Confirm_Password(password) {
-			prettyfmt.CPrint("Wrong password! Goodbye!\n", prettyfmt.RED)
-			os.Exit(3)
+		if err != nil {
+			generalerrors.HandleError(err)
+			prettyfmt.ErrorF("Failed to load wallet!\n")
+			os.Exit(FAILED_TO_LOAD_WALLET)
 		}
+	} else {
+		prettyfmt.CPrintf("Starting creating new wallet!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.Wallet_Dir)
+		wallet.Initialize_Wallet(fv.Username, fv.Password, fv.Wallet_Dir)
 	}
-
-	prettyfmt.CPrintf("Welcome, %s!\n", prettyfmt.GREEN, w.Get_Username())
-
-	return bc, w
-}
-
-func display_title() {
-	Clear_Screen()
-
-	prettyfmt.Print("#########    #####   ######  ######       #######         #######\n")
-	prettyfmt.Print("#########  ##     ##   ####  ####         ###   ###      ##      \n")
-	prettyfmt.Print("   ###     ##     ##    ###  ###          ###    ###    ##       \n")
-	prettyfmt.Print("   ###     ##     ##     ######           #######      ##        \n")
-	prettyfmt.Print("   ###     ##     ##      ####            ###    ###   ##        \n")
-	prettyfmt.Print("   ###     ##     ##      ####            ###     ###   ##       \n")
-	prettyfmt.Print("   ###     ##     ##      ####            ###    ###     ##      \n")
-	prettyfmt.Print("   ###       #####        ####            #######         #######\n")
-
-	prettyfmt.Print("\n\n\n")
-}
-
-func Clear_Screen() {
-	if runtime.GOOS == "windows" {
-		clear_screen_err := exec.Command("powershell", "clear").Run()
-
-		if clear_screen_err != nil {
-			prettyfmt.ErrorF("Error in displaying the menu: %s\n", clear_screen_err.Error())
-			return
-		}
-	} else if runtime.GOOS == "linux" {
-		clear_screen_err := exec.Command("clear").Run()
-
-		if clear_screen_err != nil {
-			prettyfmt.ErrorF("Error in displaying the menu: %s\n", clear_screen_err.Error())
-			return
-		}
-	}
-}
-
-func ScanChoice() int {
-	s := bufio.NewScanner(os.Stdin)
-	s.Scan()
-
-	val, err := strconv.Atoi(s.Text())
-
-	prettyfmt.CPrintf("%s\n", prettyfmt.BLUE, s.Text())
-
-	if err != nil && s.Text() != "" {
-		prettyfmt.ErrorF("Error in parsing the choice: %s\n", err.Error())
-		return -1
-	}
-
-	return val
-
-}
-
-func Display_Main_Menu() {
-	display_title()
-	prettyfmt.Print("   Main Menu\n\n")
-	prettyfmt.Print("1. Add Asset\n")
-	prettyfmt.Print("2. Remove Asset\n")
-	prettyfmt.Print("3. View Assets\n")
-	prettyfmt.Print("4. Add to Blockchain (Just for testing as of now)\n")
-	prettyfmt.Print("5. View Blockchain (Not working now)\n")
-	prettyfmt.Print("6. Save\n")
-	prettyfmt.Print("7. Exit\n")
-
-}
-
-func Add_Asset(w *wallet.Wallet) {
-	Clear_Screen()
-	var asset_name string
-	var asset_init_loc string
-
-	prettyfmt.Print("===== ADD ASSET =====\n\n")
-	prettyfmt.Print("What is the new name of the asset you want to add?\n->")
-	prettyfmt.Scanln(&asset_name)
-
-	prettyfmt.Print("\n")
-
-	prettyfmt.Print("Location of the file on your machine?\n->")
-	prettyfmt.Scanln(&asset_init_loc)
-
-	w.Add_Asset(asset_name, asset_init_loc)
-
-	prettyfmt.Print("Press enter to go back to the main menu...\n")
-	ScanChoice()
-}
-
-func Remove_Asset(w *wallet.Wallet) {
-	Clear_Screen()
-	var asset_name string
-
-	prettyfmt.Print("===== REMOVE ASSET =====\n\n")
-
-	assets := w.Get_All_Assets()
-
-	prettyfmt.Print("Your assets:\n")
-
-	for _, a := range assets {
-		prettyfmt.Printf("  -%s\n", a.Get_Name())
-	}
-
-	prettyfmt.Print("What asset do you want to remove?\n->")
-	prettyfmt.Scanln(&asset_name)
-
-	w.Remove_Asset(asset_name)
-
-	prettyfmt.Print("Press enter to go back to the main menu...\n")
-	ScanChoice()
-}
-
-func View_Assets(w *wallet.Wallet) {
-	Clear_Screen()
-	assets := w.Get_All_Assets()
-
-	prettyfmt.Print("Your assets:\n")
-
-	for _, a := range assets {
-		prettyfmt.Printf("  -%s\n", a.Get_Name())
-	}
-
-	prettyfmt.Print("Press enter to go back to the main menu...\n")
-	ScanChoice()
-}
-
-func Add_To_Blockchain_Test(w *wallet.Wallet, bc *blockchain.BlockChain) {
-	Clear_Screen()
-	var asset_name string
-	var dest_user string
-
-	prettyfmt.Print("===== ADD TO BLOCKCHAIN =====\n\n")
-
-	prettyfmt.Print("What asset do you want to transaction?\n->")
-	prettyfmt.Scanln(&asset_name)
-
-	a := w.Get_Asset(asset_name)
-
-	if a == nil {
-		prettyfmt.ErrorF("There is no asset named \"%s\" in your wallet!\n", asset_name)
-		prettyfmt.ErrorF("Failed to add \"%s\" to blockchain!\n", asset_name)
-		prettyfmt.Print("Press enter to go back to the main menu...\n")
-		ScanChoice()
-		return
-	}
-
-	prettyfmt.Print("Who is the receiving user?\n->")
-	prettyfmt.Scanln(&dest_user)
-
-	bc.Add_Data_Test(w.Get_Username(), a, dest_user)
-
-	w.Remove_Asset(a.Get_Name())
-
-	prettyfmt.Print("Press enter to go back to the main menu...\n")
-	ScanChoice()
-}
-
-func View_Blockchain_Test(bc *blockchain.BlockChain) {
-	Clear_Screen()
-	bc.View_Blockchain()
-
-	prettyfmt.Print("Press enter to go back to the main menu...\n")
-	ScanChoice()
 }
