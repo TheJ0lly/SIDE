@@ -10,24 +10,24 @@ import (
 )
 
 const (
-	NO_VALUE_PASSED          = "NO_VALUE_PASSED"
-	NO_PASS_OR_USER          = 1
-	LOAD_BC_NO_DB_PASSED     = 2
-	LOAD_WALLET_NO_DB_PASSED = 3
-	FAILED_TO_LOAD_BC        = 4
-	FAILED_TO_LOAD_WALLET    = 5
+	NoValuePassed        = "NO_VALUE_PASSED"
+	NoPassOrUser         = 1
+	LoadBcNoDbPassed     = 2
+	LoadWalletNoDbPassed = 3
+	FailedToLoadBc       = 4
+	FailedToLoadWallet   = 5
 )
 
-type Flag_Values struct {
-	Username       string
-	Password       string
-	Blockchain_Dir string
-	Wallet_Dir     string
-	LoadBC         bool
-	LoadWallet     bool
+type FlagValues struct {
+	Username      string
+	Password      string
+	BlockchainDir string
+	WalletDir     string
+	LoadBC        bool
+	LoadWallet    bool
 }
 
-func Display_Help() {
+func DisplayHelp() {
 	prettyfmt.ErrorF("Usage: <exec> (-u <string> & -p <string>) [ACTIONS]\n\n")
 
 	prettyfmt.Print("  -h          \n      Display help menu.\n\n")
@@ -40,40 +40,40 @@ func Display_Help() {
 
 }
 
-func Init_Flags() *Flag_Values {
-	U := flag.String("u", NO_VALUE_PASSED, "")
-	P := flag.String("p", NO_VALUE_PASSED, "")
-	Load_BC := flag.Bool("lb", false, "")
-	Load_Wallet := flag.Bool("lw", false, "")
-	DB_BC := flag.String("db", NO_VALUE_PASSED, "")
-	DB_ASSETS := flag.String("da", NO_VALUE_PASSED, "")
+func InitFlags() *FlagValues {
+	U := flag.String("u", NoValuePassed, "")
+	P := flag.String("p", NoValuePassed, "")
+	LoadBc := flag.Bool("lb", false, "")
+	LoadWallet := flag.Bool("lw", false, "")
+	DbBc := flag.String("db", NoValuePassed, "")
+	DbAssets := flag.String("da", NoValuePassed, "")
 
-	flag.Usage = Display_Help
+	flag.Usage = DisplayHelp
 
 	flag.Parse()
 
-	if *U == NO_VALUE_PASSED || *P == NO_VALUE_PASSED {
-		Display_Help()
-		os.Exit(NO_PASS_OR_USER)
+	if *U == NoValuePassed || *P == NoValuePassed {
+		DisplayHelp()
+		os.Exit(NoPassOrUser)
 	}
 
-	if !*Load_BC && *DB_BC == NO_VALUE_PASSED {
+	if !*LoadBc && *DbBc == NoValuePassed {
 		prettyfmt.ErrorF("Cannot start new instance of a Blockchain without a folder for the database!\n\n")
-		Display_Help()
-		os.Exit(LOAD_BC_NO_DB_PASSED)
+		DisplayHelp()
+		os.Exit(LoadBcNoDbPassed)
 	}
 
-	if !*Load_Wallet && *DB_ASSETS == NO_VALUE_PASSED {
+	if !*LoadWallet && *DbAssets == NoValuePassed {
 		prettyfmt.ErrorF("Cannot start new instance of a Wallet without a folder for the database!\n\n")
-		Display_Help()
-		os.Exit(LOAD_WALLET_NO_DB_PASSED)
+		DisplayHelp()
+		os.Exit(LoadWalletNoDbPassed)
 	}
 
-	return &Flag_Values{Username: *U, Password: *P, Blockchain_Dir: *DB_BC, Wallet_Dir: *DB_ASSETS, LoadBC: *Load_BC, LoadWallet: *Load_Wallet}
+	return &FlagValues{Username: *U, Password: *P, BlockchainDir: *DbBc, WalletDir: *DbAssets, LoadBC: *LoadBc, LoadWallet: *LoadWallet}
 
 }
 
-func Execute(fv *Flag_Values) {
+func Execute(fv *FlagValues) {
 	if fv.LoadBC {
 		// _, err := blockchain.Load_Blockchain()
 
@@ -83,8 +83,8 @@ func Execute(fv *Flag_Values) {
 		// 	os.Exit(FAILED_TO_LOAD_BC)
 		// }
 	} else {
-		prettyfmt.CPrintf("Starting creating new blockchain!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.Blockchain_Dir)
-		blockchain.Create_New_BlockChain(fv.Blockchain_Dir)
+		prettyfmt.CPrintf("Starting creating new blockchain!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.BlockchainDir)
+		blockchain.CreateNewBlockchain(fv.BlockchainDir)
 	}
 
 	if fv.LoadWallet {
@@ -96,7 +96,7 @@ func Execute(fv *Flag_Values) {
 		// 	os.Exit(FAILED_TO_LOAD_WALLET)
 		// }
 	} else {
-		prettyfmt.CPrintf("Starting creating new wallet!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.Wallet_Dir)
-		wallet.Create_New_Wallet(fv.Username, fv.Password, fv.Wallet_Dir)
+		prettyfmt.CPrintf("Starting creating new wallet!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.WalletDir)
+		wallet.CreateNewWallet(fv.Username, fv.Password, fv.WalletDir)
 	}
 }

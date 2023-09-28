@@ -8,17 +8,17 @@ import (
 )
 
 // This function will check if the block passed is the Genesis block.
-func check_if_genesis(b *Block) bool {
-	if len(b.meta_data) == 0 {
+func checkIfGenesis(b *Block) bool {
+	if len(b.metaData) == 0 {
 		return false
 	}
-	return b.meta_data[0] == genesis_name
+	return b.metaData[0] == genesisName
 }
 
-func clear_folder(db_loc string, files []fs.DirEntry) error {
+func clearFolder(dbLoc string, files []fs.DirEntry) error {
 	for _, f := range files {
-		file_name := prettyfmt.SPathF(db_loc, f.Name())
-		err := os.Remove(file_name)
+		fileName := prettyfmt.SPathF(dbLoc, f.Name())
+		err := os.Remove(fileName)
 
 		if err != nil {
 			return err

@@ -9,8 +9,8 @@ import (
 )
 
 // This function
-func (w *Wallet) check_asset_exists(asset_name string) bool {
-	files, err := os.ReadDir(w.database_dir)
+func (w *Wallet) checkAssetExists(assetName string) bool {
+	files, err := os.ReadDir(w.databaseDir)
 
 	if err != nil {
 		prettyfmt.ErrorF("%s\n", err.Error())
@@ -18,7 +18,7 @@ func (w *Wallet) check_asset_exists(asset_name string) bool {
 	}
 
 	for _, file := range files {
-		if asset_name == file.Name() {
+		if assetName == file.Name() {
 			return true
 		}
 	}
@@ -27,23 +27,23 @@ func (w *Wallet) check_asset_exists(asset_name string) bool {
 }
 
 // This function will be used when making transactions
-func (w *Wallet) get_asset(asset_name string) *asset.Asset {
-	if w.check_asset_exists(asset_name) {
+func (w *Wallet) getAsset(assetName string) *asset.Asset {
+	if w.checkAssetExists(assetName) {
 		for _, a := range w.assets {
-			if a.Get_Name() == asset_name {
+			if a.GetName() == assetName {
 				return a
 			}
 		}
 	}
 
-	prettyfmt.ErrorF("No asset with the name \"%s\" can be found in your wallet\n", asset_name)
+	prettyfmt.ErrorF("No asset with the name \"%s\" can be found in your wallet\n", assetName)
 	return nil
 }
 
-func clear_folder(db_loc string, files []fs.DirEntry) error {
+func clearFolder(dbLoc string, files []fs.DirEntry) error {
 	for _, f := range files {
-		file_name := prettyfmt.SPathF(db_loc, f.Name())
-		err := os.Remove(file_name)
+		fileName := prettyfmt.SPathF(dbLoc, f.Name())
+		err := os.Remove(fileName)
 
 		if err != nil {
 			return err

@@ -12,125 +12,125 @@ import (
 )
 
 const (
-	key_bit_size = 256
+	keyBitSize = 256
 )
 
 type Wallet struct {
-	username     string
-	password     string
-	public_key   rsa.PublicKey
-	private_key  rsa.PrivateKey
-	database_dir string
-	assets       []*asset.Asset
+	username    string
+	password    string
+	publicKey   rsa.PublicKey
+	privateKey  rsa.PrivateKey
+	databaseDir string
+	assets      []*asset.Asset
 }
 
-// This function will create a wallet.
-func Create_New_Wallet(username string, password string, db_loc string) (*Wallet, error) {
-	files, err := os.ReadDir(db_loc)
+// CreateNewWallet - This function will create a wallet.
+func CreateNewWallet(username string, password string, dbLoc string) (*Wallet, error) {
+	files, err := os.ReadDir(dbLoc)
 
 	if err != nil {
 		prettyfmt.ErrorF("%s\n", err.Error())
-		return nil, &generalerrors.ReadDirFailed{Dir: db_loc}
+		return nil, &generalerrors.ReadDirFailed{Dir: dbLoc}
 	}
 
 	if len(files) > 0 {
-		prettyfmt.WarningF("Folder %s contains files! Do you want to delete them?[y\\n]\n", db_loc)
+		prettyfmt.WarningF("Folder %s contains files! Do you want to delete them?[y\\n]\n", dbLoc)
 		var choice string
 		prettyfmt.Scanln(&choice)
 
 		if choice != "y" {
-			return nil, &generalerrors.WalletDBHasItems{Dir: db_loc}
+			return nil, &generalerrors.WalletDBHasItems{Dir: dbLoc}
 		}
 
-		err = clear_folder(db_loc, files)
+		err = clearFolder(dbLoc, files)
 
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	priv_key, err := rsa.GenerateKey(rand.Reader, key_bit_size)
+	privKey, err := rsa.GenerateKey(rand.Reader, keyBitSize)
 
 	if err != nil {
 		prettyfmt.ErrorF("%s\n", err.Error())
 		return nil, err
 	}
 
-	pass_bytes := sha256.Sum256([]byte(password))
+	passBytes := sha256.Sum256([]byte(password))
 
-	pass_bytes_str := prettyfmt.Sprintf("%X", pass_bytes)
+	passBytesStr := prettyfmt.Sprintf("%X", passBytes)
 
-	w := &Wallet{username: username, password: pass_bytes_str, private_key: *priv_key, public_key: priv_key.PublicKey, assets: nil, database_dir: db_loc}
+	w := &Wallet{username: username, password: passBytesStr, privateKey: *privKey, publicKey: privKey.PublicKey, assets: nil, databaseDir: dbLoc}
 
 	return w, nil
 }
 
-// This function will add an asset to the wallet.
-func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
+// AddAsset - This function will add an asset to the wallet.
+func (w *Wallet) AddAsset(assetName string, fileLocation string) bool {
 
-	if w.check_asset_exists(asset_name) {
-		prettyfmt.ErrorF("There is already an asset with this name - \"%s\"\n", asset_name)
+	if w.checkAssetExists(assetName) {
+		prettyfmt.ErrorF("There is already an asset with this name - \"%s\"\n", assetName)
 		return false
 	}
 
-	temp, err := os.Stat(file_location)
+	temp, err := os.Stat(fileLocation)
 
 	if os.IsNotExist(err) {
-		prettyfmt.ErrorF("Asset location does not exist! - \"%s\"\n", file_location)
+		prettyfmt.ErrorF("Asset location does not exist! - \"%s\"\n", fileLocation)
 		return false
 	}
 
 	if temp.IsDir() {
-		prettyfmt.ErrorF("Asset is a folder! - \"%s\"\n", file_location)
+		prettyfmt.ErrorF("Asset is a folder! - \"%s\"\n", fileLocation)
 		return false
 	}
 
-	file_data, err := os.ReadFile(file_location)
+	fileData, err := os.ReadFile(fileLocation)
 
 	if err != nil {
 		prettyfmt.ErrorF("%s\n", err.Error())
 		return false
 	}
 
-	switch asset.Determine_Asset_Type(file_data) {
+	switch asset.DetermineAssetType(fileData) {
 	case asset.JPEG:
-		asset_to_add := asset.Create_New_Asset(asset_name, asset.JPEG, file_data)
-		w.assets = append(w.assets, asset_to_add)
-		err = os.WriteFile(prettyfmt.SPathF(w.database_dir, asset_name), file_data, 0444)
+		assetToAdd := asset.CreateNewAsset(assetName, asset.JPEG, fileData)
+		w.assets = append(w.assets, assetToAdd)
+		err = os.WriteFile(prettyfmt.SPathF(w.databaseDir, assetName), fileData, 0444)
 
 		if err != nil {
-			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
+			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", assetName)
 			generalerrors.HandleError(err)
 			return false
 		}
 
-		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: JPEG\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
+		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: JPEG\nSize: %d bytes\n", prettyfmt.GREEN, assetName, len(fileData))
 		return true
 	case asset.PDF:
-		asset_to_add := asset.Create_New_Asset(asset_name, asset.PDF, file_data)
-		w.assets = append(w.assets, asset_to_add)
-		err = os.WriteFile(prettyfmt.SPathF(w.database_dir, asset_name), file_data, 0444)
+		assetToAdd := asset.CreateNewAsset(assetName, asset.PDF, fileData)
+		w.assets = append(w.assets, assetToAdd)
+		err = os.WriteFile(prettyfmt.SPathF(w.databaseDir, assetName), fileData, 0444)
 
 		if err != nil {
-			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
+			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", assetName)
 			generalerrors.HandleError(err)
 			return false
 		}
 
-		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))
+		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", prettyfmt.GREEN, assetName, len(fileData))
 		return true
 	default:
-		prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: Unknown format!\n", asset_name)
+		prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: Unknown format!\n", assetName)
 		return false
 	}
 }
 
-// This function will remove an asset from the wallet.
-func (w *Wallet) Remove_Asset(asset_name string) bool {
-	a := w.get_asset(asset_name)
+// RemoveAsset - This function will remove an asset from the wallet.
+func (w *Wallet) RemoveAsset(assetName string) bool {
+	a := w.getAsset(assetName)
 
 	if a != nil {
-		err := os.Remove(prettyfmt.SPathF(w.database_dir, asset_name))
+		err := os.Remove(prettyfmt.SPathF(w.databaseDir, assetName))
 
 		if err != nil {
 			generalerrors.HandleError(err)
@@ -151,17 +151,17 @@ func (w *Wallet) Remove_Asset(asset_name string) bool {
 	return true
 }
 
-func (w *Wallet) Get_Username() string {
+func (w *Wallet) GetUsername() string {
 	return w.username
 }
 
-func (w *Wallet) Confirm_Password(pass string) bool {
-	pass_bytes := sha256.Sum256([]byte(pass))
+func (w *Wallet) ConfirmPassword(pass string) bool {
+	passBytes := sha256.Sum256([]byte(pass))
 
-	pass_bytes_str := prettyfmt.Sprintf("%X", pass_bytes)
+	passBytesStr := prettyfmt.Sprintf("%X", passBytes)
 
-	if w.password == pass_bytes_str {
-		w.password = pass_bytes_str
+	if w.password == passBytesStr {
+		w.password = passBytesStr
 		return true
 	}
 

@@ -2,12 +2,12 @@ package osspecifics
 
 import "runtime"
 
-var PATH_SEP string
+var PathSep string
 
 func init() {
 	if runtime.GOOS == "windows" {
-		PATH_SEP = "\\"
+		PathSep = "\\"
 	} else if runtime.GOOS == "linux" {
-		PATH_SEP = "/"
+		PathSep = "/"
 	}
 }

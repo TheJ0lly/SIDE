@@ -7,57 +7,57 @@ import (
 	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
-// This error means that a block's data/transaction capacity has been reached.
+// BlockCapacityReached - This error means that a block's data/transaction capacity has been reached.
 type BlockCapacityReached struct {
 	Capacity uint8
 }
 
-// This error means that a os.ReadDir has failed.
+// ReadDirFailed - This error means that a call to os.ReadDir has failed.
 type ReadDirFailed struct {
 	Dir string
 }
 
-// This error means that a os.ReadDir has failed.
+// ReadFileFailed - This error means that a call to os.ReadFile has failed.
 type ReadFileFailed struct {
 	File string
 }
 
-// This error means that a json.Marshal has failed.
+// JSONMarshalFailed - This error means that a json.Marshal has failed.
 type JSONMarshalFailed struct {
 	Object string
 }
 
-// This error means that a json.Unmarshal has failed.
+// JSONUnMarshalFailed This error means that a json.Unmarshal has failed.
 type JSONUnMarshalFailed struct {
 	Object string
 }
 
-// This error means that a os.Remove has failed.
+// RemoveFileFailed -This error means that a call to os.Remove has failed.
 type RemoveFileFailed struct {
 	File string
 }
 
-// This error means that some data that is trying to be added is too big.
+// DataTooBig - This error means that some data that is trying to be added is too big.
 // SOON WILL BECOME OBSOLETE WHEN REPLACING STRINGS WITH TRANSACTIONS
 type DataTooBig struct {
-	Data        string
-	Data_Length uint8
+	Data       string
+	DataLength uint8
 }
 
-// This error means that a os.WriteFile has failed.
+// WriteFileFailed - This error means that a call to os.WriteFile has failed.
 type WriteFileFailed struct {
 	File string
 }
 
-// This error means that the database directory where the blocks have been stored, is empty.
+// BlockChainDBEmpty - This error means that the database directory where the blocks have been stored, is empty.
 // Is used only when rebuilding the blockchain, because no files means that there has been 100% some tampering going on.
 type BlockChainDBEmpty struct {
 	Dir string
 }
 
-// This error means that a block file is missing from the reconstruction of the blockchain.
+// BlockMissing - This error means that a block file is missing from the reconstruction of the blockchain.
 type BlockMissing struct {
-	Block_Hash string
+	BlockHash string
 }
 
 type BlockchainDBHasItems struct {
@@ -75,7 +75,8 @@ func (bcr *BlockCapacityReached) Error() string {
 }
 
 func (bcr *BlockCapacityReached) Is(target error) bool {
-	_, ok := target.(*BlockCapacityReached)
+	var blockCapacityReached *BlockCapacityReached
+	ok := errors.As(target, &blockCapacityReached)
 	return ok
 }
 
@@ -105,7 +106,7 @@ func (rff *RemoveFileFailed) Error() string {
 }
 
 func (dtb *DataTooBig) Error() string {
-	return prettyfmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, dtb.Data_Length)
+	return prettyfmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, dtb.DataLength)
 }
 
 func (wff *WriteFileFailed) Error() string {
@@ -117,7 +118,7 @@ func (bcdbe *BlockChainDBEmpty) Error() string {
 }
 
 func (bm *BlockMissing) Error() string {
-	return prettyfmt.Sprintf("There is no block with the hash: %s!", bm.Block_Hash)
+	return prettyfmt.Sprintf("There is no block with the hash: %s!", bm.BlockHash)
 }
 
 func (bc *BlockchainDBHasItems) Error() string {
@@ -130,29 +131,30 @@ func (w *WalletDBHasItems) Error() string {
 
 // ======== HANDLE ERROR FUNCTION ========
 
-// This error means, that if any error has occured, just exit with the Exit_Code value.
-type All_Errors_Exit struct {
-	Exit_Code int
+// AllErrorsExit - This error means, that if any error has occured, just exit with the ExitCode value.
+type AllErrorsExit struct {
+	ExitCode int
 }
 
-func (aee *All_Errors_Exit) Error() string {
+func (aee *AllErrorsExit) Error() string {
 	return "Any error will exit the program"
 }
 
-// This function will print the errors given.
+// HandleError - This function will print the errors given.
 // If you want to exit on a specific error, just add it after the initial error, and if it matches, the program will exit with 1.
-// If you want to exit on all errors, doesn't matter which specific one, just use All_Errors_Exit, and pass the error code you want to exit with.
-func HandleError(err error, errors_to_fail ...error) {
+// If you want to exit on all errors, doesn't matter which specific one, just use AllErrorsExit, and pass the error code you want to exit with.
+func HandleError(err error, errorsToFail ...error) {
 	prettyfmt.ErrorF("%s\n", err.Error())
 
-	if len(errors_to_fail) != 0 {
-		aee, ok := errors_to_fail[0].(*All_Errors_Exit)
+	if len(errorsToFail) != 0 {
+		var aee *AllErrorsExit
+		ok := errors.As(errorsToFail[0], &aee)
 
 		if ok {
-			os.Exit(aee.Exit_Code)
+			os.Exit(aee.ExitCode)
 		}
 
-		for _, e := range errors_to_fail {
+		for _, e := range errorsToFail {
 			if errors.Is(err, e) {
 				os.Exit(1)
 			}

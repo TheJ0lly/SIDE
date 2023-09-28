@@ -16,14 +16,14 @@ type Tree struct {
 	TreeMatrix [][][32]byte
 }
 
-func (p *Pair) generate_hash() [32]byte {
+func (p *Pair) generateHash() [32]byte {
 	var allBytes []byte
 	allBytes = append(allBytes, p.LHash[:]...)
 	allBytes = append(allBytes, p.RHash[:]...)
 	return sha256.Sum256(allBytes)
 }
 
-func Generate_Tree(l [][32]byte, t *Tree) [32]byte {
+func GenerateTree(l [][32]byte, t *Tree) [32]byte {
 	var newList [][32]byte
 
 	if len(l)%2 == 1 {
@@ -33,7 +33,7 @@ func Generate_Tree(l [][32]byte, t *Tree) [32]byte {
 	for i := 0; i < len(l); i += 2 {
 		p := Pair{LHash: l[i], RHash: l[i+1]}
 
-		newList = append(newList, p.generate_hash())
+		newList = append(newList, p.generateHash())
 	}
 
 	if len(newList) == 1 {
@@ -44,10 +44,10 @@ func Generate_Tree(l [][32]byte, t *Tree) [32]byte {
 	}
 	t.TreeMatrix = append(t.TreeMatrix, newList)
 
-	return Generate_Tree(newList, t)
+	return GenerateTree(newList, t)
 }
 
-func get_list_of_hashes_to_validate(index int, t *Tree) []Node {
+func getListOfHashesToValidate(index int, t *Tree) []Node {
 	var newList []Node
 
 	level := 0
@@ -70,14 +70,14 @@ func get_list_of_hashes_to_validate(index int, t *Tree) []Node {
 	return newList
 }
 
-func Validate_Data(name string, t *Tree, rootHash [32]byte) bool {
-	namehash := sha256.Sum256([]byte(name))
+func ValidateData(name string, t *Tree, rootHash [32]byte) bool {
+	nameHash := sha256.Sum256([]byte(name))
 
 	var l []Node
 
 	for i, k := range t.TreeMatrix[0] {
-		if k == namehash {
-			l = get_list_of_hashes_to_validate(i, t)
+		if k == nameHash {
+			l = getListOfHashesToValidate(i, t)
 		}
 	}
 
@@ -85,14 +85,14 @@ func Validate_Data(name string, t *Tree, rootHash [32]byte) bool {
 
 	for _, k := range l {
 		if k.Direction {
-			p = &Pair{LHash: namehash, RHash: k.Hash}
+			p = &Pair{LHash: nameHash, RHash: k.Hash}
 		} else {
-			p = &Pair{LHash: k.Hash, RHash: namehash}
+			p = &Pair{LHash: k.Hash, RHash: nameHash}
 		}
-		namehash = p.generate_hash()
+		nameHash = p.generateHash()
 	}
 
-	return namehash == rootHash
+	return nameHash == rootHash
 }
 
 func (t *Tree) Clear() {
