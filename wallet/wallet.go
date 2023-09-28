@@ -25,7 +25,7 @@ type Wallet struct {
 }
 
 // This function will create a wallet.
-func Initialize_Wallet(username string, password string, db_loc string) (*Wallet, error) {
+func Create_New_Wallet(username string, password string, db_loc string) (*Wallet, error) {
 	files, err := os.ReadDir(db_loc)
 
 	if err != nil {
@@ -41,10 +41,12 @@ func Initialize_Wallet(username string, password string, db_loc string) (*Wallet
 		if choice != "y" {
 			return nil, &generalerrors.WalletDBHasItems{Dir: db_loc}
 		}
-	}
 
-	for _, f := range files {
-		os.Remove(prettyfmt.SPathF(db_loc, f.Name()))
+		err = clear_folder(db_loc, files)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	priv_key, err := rsa.GenerateKey(rand.Reader, key_bit_size)
@@ -112,6 +114,7 @@ func (w *Wallet) Add_Asset(asset_name string, file_location string) bool {
 		if err != nil {
 			prettyfmt.ErrorF("Failed to add \"%s\" as an asset.\nError: ", asset_name)
 			generalerrors.HandleError(err)
+			return false
 		}
 
 		prettyfmt.CPrintf("Successfully added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", prettyfmt.GREEN, asset_name, len(file_data))

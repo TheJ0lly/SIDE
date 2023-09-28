@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/TheJ0lly/GoChain/blockchain"
-	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/prettyfmt"
 	"github.com/TheJ0lly/GoChain/wallet"
 )
@@ -76,28 +75,28 @@ func Init_Flags() *Flag_Values {
 
 func Execute(fv *Flag_Values) {
 	if fv.LoadBC {
-		_, err := blockchain.Load_Blockchain()
+		// _, err := blockchain.Load_Blockchain()
 
-		if err != nil {
-			generalerrors.HandleError(err)
-			prettyfmt.ErrorF("Failed to load blockchain!\n")
-			os.Exit(FAILED_TO_LOAD_BC)
-		}
+		// if err != nil {
+		// 	generalerrors.HandleError(err)
+		// 	prettyfmt.ErrorF("Failed to load blockchain!\n")
+		// 	os.Exit(FAILED_TO_LOAD_BC)
+		// }
 	} else {
 		prettyfmt.CPrintf("Starting creating new blockchain!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.Blockchain_Dir)
-		blockchain.Initialize_BlockChain(fv.Blockchain_Dir)
+		blockchain.Create_New_BlockChain(fv.Blockchain_Dir)
 	}
 
 	if fv.LoadWallet {
-		_, err := wallet.Load_Wallet()
+		// _, err := wallet.Load_Wallet()
 
-		if err != nil {
-			generalerrors.HandleError(err)
-			prettyfmt.ErrorF("Failed to load wallet!\n")
-			os.Exit(FAILED_TO_LOAD_WALLET)
-		}
+		// if err != nil {
+		// 	generalerrors.HandleError(err)
+		// 	prettyfmt.ErrorF("Failed to load wallet!\n")
+		// 	os.Exit(FAILED_TO_LOAD_WALLET)
+		// }
 	} else {
 		prettyfmt.CPrintf("Starting creating new wallet!\nDatabase location: %s\n\n", prettyfmt.BLUE, fv.Wallet_Dir)
-		wallet.Initialize_Wallet(fv.Username, fv.Password, fv.Wallet_Dir)
+		wallet.Create_New_Wallet(fv.Username, fv.Password, fv.Wallet_Dir)
 	}
 }

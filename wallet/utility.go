@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"io/fs"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
@@ -36,5 +37,18 @@ func (w *Wallet) get_asset(asset_name string) *asset.Asset {
 	}
 
 	prettyfmt.ErrorF("No asset with the name \"%s\" can be found in your wallet\n", asset_name)
+	return nil
+}
+
+func clear_folder(db_loc string, files []fs.DirEntry) error {
+	for _, f := range files {
+		file_name := prettyfmt.SPathF(db_loc, f.Name())
+		err := os.Remove(file_name)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
