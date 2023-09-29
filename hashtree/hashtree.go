@@ -16,13 +16,8 @@ type Tree struct {
 	mTreeMatrix [][][32]byte
 }
 
-func (p *Pair) generateHash() [32]byte {
-	var allBytes []byte
-	allBytes = append(allBytes, p.mLHash[:]...)
-	allBytes = append(allBytes, p.mRHash[:]...)
-	return sha256.Sum256(allBytes)
-}
-
+// GenerateTree - will generate a MerkleTree, and store the tree in the t variable that is passed as a pointer.
+// It will return the new hash of the block.
 func GenerateTree(l [][32]byte, t *Tree) [32]byte {
 	var newList [][32]byte
 
@@ -45,29 +40,6 @@ func GenerateTree(l [][32]byte, t *Tree) [32]byte {
 	t.mTreeMatrix = append(t.mTreeMatrix, newList)
 
 	return GenerateTree(newList, t)
-}
-
-func getListOfHashesToValidate(index int, t *Tree) []Node {
-	var newList []Node
-
-	level := 0
-
-	for {
-		if index%2 == 0 {
-			newList = append(newList, Node{mHash: t.mTreeMatrix[level][index+1], mDirection: true})
-		} else {
-			newList = append(newList, Node{mHash: t.mTreeMatrix[level][index-1], mDirection: false})
-		}
-		level++
-
-		if len(t.mTreeMatrix[level]) == 1 {
-			break
-		}
-
-		index = index / 2
-	}
-
-	return newList
 }
 
 func ValidateData(name string, t *Tree, rootHash [32]byte) bool {

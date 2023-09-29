@@ -12,7 +12,7 @@ const (
 )
 
 type Block struct {
-	mMetaData []string
+	mMetaData []*MetaData
 	mPrevHash []byte
 	mCurrHash []byte
 	mHashTree *hashtree.Tree
@@ -20,41 +20,61 @@ type Block struct {
 
 // createGenesisBlock - will only be used once at initialization of a BlockChain instance.
 func createGenesisBlock() *Block {
-	md := []string{genesisName}
 
-	hash := sha256.Sum256([]byte(md[0]))
+	var mdSlice []*MetaData
+	mdSlice = append(mdSlice, CreateNewMetaData(genesisName, genesisName, genesisName))
 
-	return &Block{mMetaData: md, mPrevHash: nil, mCurrHash: hash[:]}
+	var hashSlice [][32]byte
+	hashSlice = append(hashSlice, sha256.Sum256([]byte(mdSlice[0].GetMetaDataString())))
+
+	ht := &hashtree.Tree{}
+
+	hash := hashtree.GenerateTree(hashSlice, ht)
+
+	return &Block{
+		mMetaData: mdSlice,
+		mPrevHash: nil,
+		mCurrHash: hash[:],
+		mHashTree: ht,
+	}
 }
 
 // createNewBlock - will create a new block, and it will return the new block.
 func createNewBlock(b *Block) *Block {
 	hash := sha256.Sum256(b.mCurrHash)
-	return &Block{mMetaData: nil, mPrevHash: b.mCurrHash, mCurrHash: hash[:], mHashTree: &hashtree.Tree{}}
+
+	return &Block{
+		mMetaData: nil,
+		mPrevHash: b.mCurrHash,
+		mCurrHash: hash[:],
+		mHashTree: &hashtree.Tree{},
+	}
 }
 
 // addDataToBlock - will add data to a block if possible, otherwise it will return an error.
-func (b *Block) addDataToBlock(data string) {
+func (b *Block) addDataToBlock(data *MetaData) {
 	b.mMetaData = append(b.mMetaData, data)
 }
 
 // getMetaDataHashes - will return the hashes of all the metadata in the block.
-func (b *Block) getMetaDataHashes() [][32]byte {
+func getMetaDataHashes(md []*MetaData) [][32]byte {
 	var newList [][32]byte
 
-	for _, md := range b.mMetaData {
-		newList = append(newList, sha256.Sum256([]byte(md)))
+	for _, m := range md {
+		newList = append(newList, sha256.Sum256([]byte(m.GetMetaDataString())))
 	}
 
 	return newList
 }
 
 // getProperBlock - will return the correct block to add data to.
-func (bc *BlockChain) getProperBlock() *Block {
+func (bc *BlockChain) getProperBlock() (*Block, bool) {
 	if len(bc.mLastBlock.mMetaData) == blockDataCapacity || checkIfGenesis(bc.mLastBlock) {
-		return createNewBlock(bc.mLastBlock)
+		nb := createNewBlock(bc.mLastBlock)
+		bc.mLastBlock = nb
+		return nb, false
 	} else {
-		return bc.mLastBlock
+		return bc.mLastBlock, true
 	}
 }
 
@@ -63,5 +83,5 @@ func checkIfGenesis(b *Block) bool {
 	if len(b.mMetaData) == 0 {
 		return false
 	}
-	return b.mMetaData[0] == genesisName
+	return b.mMetaData[0].GetSourceName() == genesisName && b.mMetaData[0].GetDestinationName() == genesisName && b.mMetaData[0].GetAssetName() == genesisName
 }

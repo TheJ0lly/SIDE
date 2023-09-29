@@ -2,6 +2,8 @@ package blockchain
 
 import (
 	"fmt"
+	"github.com/TheJ0lly/GoChain/osspecifics"
+	"io/fs"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
@@ -45,22 +47,54 @@ func CreateNewBlockchain(dbLoc string) (*BlockChain, error) {
 	bc := &BlockChain{mDatabaseDir: dbLoc}
 	bc.mBlocks = append(bc.mBlocks, createGenesisBlock())
 	bc.mLastBlock = bc.mBlocks[0]
+	err = bc.mLastBlock.Export(dbLoc)
+
+	if err != nil {
+		generalerrors.HandleError(err, &generalerrors.AllErrorsExit{ExitCode: 1})
+	}
 
 	return bc, nil
 }
 
+func clearFolder(dbLoc string, files []fs.DirEntry) error {
+	for _, f := range files {
+		fileName := osspecifics.CreatePath(dbLoc, f.Name())
+		err := os.Remove(fileName)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // AddData - will add some data onto the blockchain.
 func (bc *BlockChain) AddData(from string, asset *asset.Asset, destination string) {
-	var metaData = from + "_" + asset.GetName() + "_" + destination
+	md := CreateNewMetaData(from, destination, asset.GetName())
 
-	b := bc.getProperBlock()
-
-	b.addDataToBlock(metaData)
+	b, blockExists := bc.getProperBlock()
+	b.addDataToBlock(md)
 
 	b.mHashTree.ClearTree()
-	hl := b.getMetaDataHashes()
-	hashtree.GenerateTree(hl, b.mHashTree)
+	hl := getMetaDataHashes(b.mMetaData)
 	hash := hashtree.GenerateTree(hl, b.mHashTree)
 
+	fileName := fmt.Sprintf("%X", b.mCurrHash)
+
+	err := os.Remove(osspecifics.CreatePath(bc.mDatabaseDir, fileName))
+
+	if err != nil {
+		if blockExists {
+			fmt.Printf("Error: Failed to remove file!\n")
+			return
+		}
+	}
+
 	b.mCurrHash = hash[:]
+	err = b.Export(bc.mDatabaseDir)
+
+	if err != nil {
+		fmt.Printf("Error: Failed to export block!\n")
+	}
 }
