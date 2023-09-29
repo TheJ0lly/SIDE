@@ -2,22 +2,18 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"github.com/TheJ0lly/GoChain/cli"
 )
 
+//Change block data cap when ready
+
 func main() {
-	// fv := cli.Init_Flags()
+	fv := cli.InitFlags()
 
-	// if fv == nil {
-	// 	prettyfmt.ErrorF("Program has failed to parse arguments!\nTry again.\n")
-	// 	return
-	// }
-
-	// cli.Execute(fv)
-
-	_, err := os.Stat("sadasd")
-
-	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+	if fv == nil {
+		fmt.Printf("Error: Program has failed to parse arguments!\nTry again.\n")
+		return
 	}
+
+	cli.Execute(fv)
 }

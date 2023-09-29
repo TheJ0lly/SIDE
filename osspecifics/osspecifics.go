@@ -1,13 +1,16 @@
 package osspecifics
 
-import "runtime"
-
 var PathSep string
 
-func init() {
-	if runtime.GOOS == "windows" {
-		PathSep = "\\"
-	} else if runtime.GOOS == "linux" {
-		PathSep = "/"
+func CreatePath(format ...string) string {
+	var stringToReturn string
+
+	for i := 0; i < len(format); i++ {
+		stringToReturn += format[i]
+
+		if i != len(format)-1 {
+			stringToReturn += PathSep
+		}
 	}
+	return stringToReturn
 }

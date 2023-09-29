@@ -2,9 +2,8 @@ package generalerrors
 
 import (
 	"errors"
+	"fmt"
 	"os"
-
-	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 // BlockCapacityReached - This error means that a block's data/transaction capacity has been reached.
@@ -71,7 +70,7 @@ type WalletDBHasItems struct {
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
-	return prettyfmt.Sprintf("Block capacity of %d has been reached! Need new block!", bcr.Capacity)
+	return fmt.Sprintf("Block capacity of %d has been reached! Need new block!", bcr.Capacity)
 }
 
 func (bcr *BlockCapacityReached) Is(target error) bool {
@@ -81,7 +80,7 @@ func (bcr *BlockCapacityReached) Is(target error) bool {
 }
 
 func (rdf *ReadDirFailed) Error() string {
-	return prettyfmt.Sprintf("Failed to read directory: %s", rdf.Dir)
+	return fmt.Sprintf("Failed to read directory: %s", rdf.Dir)
 }
 
 func (rff *ReadFileFailed) Error() string {
@@ -90,43 +89,43 @@ func (rff *ReadFileFailed) Error() string {
 	} else if rff.File == "./ws" {
 		return "There is no save file of the wallet!"
 	}
-	return prettyfmt.Sprintf("Failed to read file: %s", rff.File)
+	return fmt.Sprintf("Failed to read file: %s", rff.File)
 }
 
 func (jmf *JSONMarshalFailed) Error() string {
-	return prettyfmt.Sprintf("Failed to marshal object of type: %s", jmf.Object)
+	return fmt.Sprintf("Failed to marshal object of type: %s", jmf.Object)
 }
 
 func (jumf *JSONUnMarshalFailed) Error() string {
-	return prettyfmt.Sprintf("Failed to unmarshal object of type: %s", jumf.Object)
+	return fmt.Sprintf("Failed to unmarshal object of type: %s", jumf.Object)
 }
 
 func (rff *RemoveFileFailed) Error() string {
-	return prettyfmt.Sprintf("Failed to remove file: %s", rff.File)
+	return fmt.Sprintf("Failed to remove file: %s", rff.File)
 }
 
 func (dtb *DataTooBig) Error() string {
-	return prettyfmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, dtb.DataLength)
+	return fmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, dtb.DataLength)
 }
 
 func (wff *WriteFileFailed) Error() string {
-	return prettyfmt.Sprintf("Failed to write file: %s", wff.File)
+	return fmt.Sprintf("Failed to write file: %s", wff.File)
 }
 
 func (bcdbe *BlockChainDBEmpty) Error() string {
-	return prettyfmt.Sprintf("There are no files in the BlockChain Database directory: %s!", bcdbe.Dir)
+	return fmt.Sprintf("There are no files in the BlockChain Database directory: %s!", bcdbe.Dir)
 }
 
 func (bm *BlockMissing) Error() string {
-	return prettyfmt.Sprintf("There is no block with the hash: %s!", bm.BlockHash)
+	return fmt.Sprintf("There is no block with the hash: %s!", bm.BlockHash)
 }
 
 func (bc *BlockchainDBHasItems) Error() string {
-	return prettyfmt.Sprintf("Folder used for Blockchain contains files! Directory: %s\n", bc.Dir)
+	return fmt.Sprintf("Folder used for Blockchain contains files! Directory: %s\n", bc.Dir)
 }
 
 func (w *WalletDBHasItems) Error() string {
-	return prettyfmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s\n", w.Dir)
+	return fmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s\n", w.Dir)
 }
 
 // ======== HANDLE ERROR FUNCTION ========
@@ -144,7 +143,7 @@ func (aee *AllErrorsExit) Error() string {
 // If you want to exit on a specific error, just add it after the initial error, and if it matches, the program will exit with 1.
 // If you want to exit on all errors, doesn't matter which specific one, just use AllErrorsExit, and pass the error code you want to exit with.
 func HandleError(err error, errorsToFail ...error) {
-	prettyfmt.ErrorF("%s\n", err.Error())
+	fmt.Printf("Error: %s\n", err.Error())
 
 	if len(errorsToFail) != 0 {
 		var aee *AllErrorsExit

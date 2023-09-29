@@ -1,11 +1,12 @@
 package wallet
 
 import (
+	"fmt"
+	"github.com/TheJ0lly/GoChain/osspecifics"
 	"io/fs"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
-	"github.com/TheJ0lly/GoChain/prettyfmt"
 )
 
 // This function
@@ -13,7 +14,7 @@ func (w *Wallet) checkAssetExists(assetName string) bool {
 	files, err := os.ReadDir(w.databaseDir)
 
 	if err != nil {
-		prettyfmt.ErrorF("%s\n", err.Error())
+		fmt.Printf("%s\n", err.Error())
 		return true
 	}
 
@@ -36,13 +37,13 @@ func (w *Wallet) getAsset(assetName string) *asset.Asset {
 		}
 	}
 
-	prettyfmt.ErrorF("No asset with the name \"%s\" can be found in your wallet\n", assetName)
+	fmt.Printf("No asset with the name \"%s\" can be found in your wallet\n", assetName)
 	return nil
 }
 
 func clearFolder(dbLoc string, files []fs.DirEntry) error {
 	for _, f := range files {
-		fileName := prettyfmt.SPathF(dbLoc, f.Name())
+		fileName := osspecifics.CreatePath(dbLoc, f.Name())
 		err := os.Remove(fileName)
 
 		if err != nil {
