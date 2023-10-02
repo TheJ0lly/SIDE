@@ -1,25 +1,30 @@
 package cli
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"os"
-
 	"github.com/TheJ0lly/GoChain/blockchain"
-	"github.com/TheJ0lly/GoChain/wallet"
+	"github.com/TheJ0lly/GoChain/generalerrors"
+	"io/fs"
+	"os"
 )
 
 const (
-	NoValuePassed        = "NO_VALUE_PASSED"
-	HelpCalled           = 0
-	NoPassOrUser         = 1
-	LoadBcNoDbPassed     = 2
-	LoadWalletNoDbPassed = 3
+	NoValuePassed              = "NO_VALUE_PASSED"
+	HelpCalled                 = 0
+	NoPassOrUser               = 1
+	CreateNewBCNoDBGiven       = 2
+	CreateNewWalletNoDBGiven   = 3
+	BlockchainFolderIsNotEmpty = 4
+	WalletFolderIsNotEmpty     = 5
 )
 
 type FlagValues struct {
 	Username      string
 	Password      string
+	NewBlockchain bool
+	NewWallet     bool
 	BlockchainDir string
 	WalletDir     string
 }
@@ -31,17 +36,20 @@ func displayHelp() {
 	fmt.Print("  -h          \n      Display help menu.\n\n")
 	fmt.Print("  -u <string> \n      Input the username of the wallet you want to log in.\n\n")
 	fmt.Print("  -p <string> \n      Input the password of the wallet you want to log in.\n\n")
-	fmt.Print("  -db <string>\n      Input the location of the database of the blockchain. Only use when creating new instance, otherwise ineffective.\n\n")
-	fmt.Print("  -da <string>\n      Input the location of the database of the wallet. Only use when creating new instance, otherwise ineffective.\n\n")
-
+	fmt.Print("  -nb         \n      Creates a new instance of the blockchain.\n\n")
+	fmt.Print("  -nw         \n      Creates a new instance of a wallet.\n\n")
+	fmt.Print("  -db <string>\n      Input the location of the database of the blockchain. Should only be used when `nb` flag is set, otherwise ineffective.\n\n")
+	fmt.Print("  -dw <string>\n      Input the location of the database of the wallet.  Should only be used when `nw` flag is set, otherwise ineffective.\n\n")
 }
 
 func InitFlags() *FlagValues {
 	H := flag.Bool("h", false, "")
 	U := flag.String("u", NoValuePassed, "")
 	P := flag.String("p", NoValuePassed, "")
+	NewBlockchain := flag.Bool("nb", false, "")
+	NewWallet := flag.Bool("nw", false, "")
 	DbBc := flag.String("db", NoValuePassed, "")
-	DbAssets := flag.String("da", NoValuePassed, "")
+	DbWallet := flag.String("dw", NoValuePassed, "")
 
 	flag.Usage = displayHelp
 
@@ -57,29 +65,70 @@ func InitFlags() *FlagValues {
 		os.Exit(NoPassOrUser)
 	}
 
-	if *DbBc == NoValuePassed {
-		fmt.Print("Error: Cannot start new instance of a Blockchain without a folder for the database!\n\n")
-		displayHelp()
-		os.Exit(LoadBcNoDbPassed)
+	if *NewBlockchain && *DbBc == NoValuePassed {
+		fmt.Print("Error: Cannot create a new Blockchain instance without a folder for the database!\n\n")
+		//displayHelp()
+		os.Exit(CreateNewBCNoDBGiven)
 	}
 
-	if *DbAssets == NoValuePassed {
-		fmt.Print("Error: Cannot start new instance of a Wallet without a folder for the database!\n\n")
-		displayHelp()
-		os.Exit(LoadWalletNoDbPassed)
+	if *NewWallet && *DbWallet == NoValuePassed {
+		fmt.Print("Error: Cannot create a new Wallet without a folder for the database!\n\n")
+		//displayHelp()
+		os.Exit(CreateNewWalletNoDBGiven)
 	}
 
-	return &FlagValues{Username: *U, Password: *P, BlockchainDir: *DbBc, WalletDir: *DbAssets}
+	return &FlagValues{
+		Username:      *U,
+		Password:      *P,
+		NewBlockchain: *NewBlockchain,
+		NewWallet:     *NewWallet,
+		BlockchainDir: *DbBc,
+		WalletDir:     *DbWallet,
+	}
 
 }
 
 // Execute - will execute the action chosen by the user on the blockchain, local and remote.
 func Execute(fv *FlagValues) {
+	var BC *blockchain.BlockChain
+	//var Wallet *wallet.Wallet
+	var err error
+	var files []fs.DirEntry
 
-	fmt.Printf("Starting creating new blockchain!\nDatabase location: %s\n\n", fv.BlockchainDir)
-	blockchain.CreateNewBlockchain(fv.BlockchainDir)
+	if fv.NewBlockchain {
+		files, err = os.ReadDir(fv.BlockchainDir)
 
-	fmt.Printf("Starting creating new wallet!\nDatabase location: %s\n\n", fv.WalletDir)
-	wallet.CreateNewWallet(fv.Username, fv.Password, fv.WalletDir)
+		if err != nil {
+			generalerrors.HandleError(err, err)
+		}
 
+		if len(files) > 0 {
+			err := errors.New("Folder contains files. " +
+				"Before you select a folder as a database, clear it or make a new one.\n")
+			AEE := &generalerrors.AllErrorsExit{ExitCode: BlockchainFolderIsNotEmpty}
+			generalerrors.HandleError(err, AEE)
+		}
+
+		BC, err = blockchain.CreateNewBlockchain(fv.BlockchainDir)
+
+		if err != nil {
+			generalerrors.HandleError(err, err)
+		}
+
+		fmt.Print("Created a new Blockchain instance.\n")
+	} else {
+		BC, err = blockchain.ImportChain()
+
+		if err != nil {
+			generalerrors.HandleError(err, err)
+		}
+	}
+
+	err = BC.ExportChain()
+
+	if err != nil {
+		generalerrors.HandleError(err, err)
+	}
+
+	//To add later for wallet
 }

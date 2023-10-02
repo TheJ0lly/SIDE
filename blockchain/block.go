@@ -2,6 +2,8 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"fmt"
+	"github.com/TheJ0lly/GoChain/metadata"
 
 	"github.com/TheJ0lly/GoChain/hashtree"
 )
@@ -12,7 +14,7 @@ const (
 )
 
 type Block struct {
-	mMetaData []*MetaData
+	mMetaData []*metadata.MetaData
 	mPrevHash []byte
 	mCurrHash []byte
 	mHashTree *hashtree.Tree
@@ -21,8 +23,8 @@ type Block struct {
 // createGenesisBlock - will only be used once at initialization of a BlockChain instance.
 func createGenesisBlock() *Block {
 
-	var mdSlice []*MetaData
-	mdSlice = append(mdSlice, CreateNewMetaData(genesisName, genesisName, genesisName))
+	var mdSlice []*metadata.MetaData
+	mdSlice = append(mdSlice, metadata.CreateNewMetaData(genesisName, genesisName, genesisName))
 
 	var hashSlice [][32]byte
 	hashSlice = append(hashSlice, sha256.Sum256([]byte(mdSlice[0].GetMetaDataString())))
@@ -30,6 +32,8 @@ func createGenesisBlock() *Block {
 	ht := &hashtree.Tree{}
 
 	hash := hashtree.GenerateTree(hashSlice, ht)
+
+	fmt.Printf("Genesis Tree Root --- %X\n", hash)
 
 	return &Block{
 		mMetaData: mdSlice,
@@ -52,16 +56,17 @@ func createNewBlock(b *Block) *Block {
 }
 
 // addDataToBlock - will add data to a block if possible, otherwise it will return an error.
-func (b *Block) addDataToBlock(data *MetaData) {
+func (b *Block) addDataToBlock(data *metadata.MetaData) {
 	b.mMetaData = append(b.mMetaData, data)
 }
 
 // getMetaDataHashes - will return the hashes of all the metadata in the block.
-func getMetaDataHashes(md []*MetaData) [][32]byte {
+func getMetaDataHashes(md []*metadata.MetaData) [][32]byte {
 	var newList [][32]byte
 
 	for _, m := range md {
-		newList = append(newList, sha256.Sum256([]byte(m.GetMetaDataString())))
+		mStr := m.GetMetaDataString()
+		newList = append(newList, sha256.Sum256([]byte(mStr)))
 	}
 
 	return newList
@@ -84,4 +89,8 @@ func checkIfGenesis(b *Block) bool {
 		return false
 	}
 	return b.mMetaData[0].GetSourceName() == genesisName && b.mMetaData[0].GetDestinationName() == genesisName && b.mMetaData[0].GetAssetName() == genesisName
+}
+
+func (b *Block) GetBlockTreeMatrix() *hashtree.Tree {
+	return b.mHashTree
 }

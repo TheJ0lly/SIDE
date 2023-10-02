@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // BlockCapacityReached - This error means that a block's data/transaction capacity has been reached.
@@ -67,6 +68,11 @@ type WalletDBHasItems struct {
 	Dir string
 }
 
+type BlockHashDifferent struct {
+	BlockHash    string
+	ComputedHash string
+}
+
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
@@ -84,9 +90,9 @@ func (rdf *ReadDirFailed) Error() string {
 }
 
 func (rff *ReadFileFailed) Error() string {
-	if rff.File == "./bcs" {
+	if strings.Contains(rff.File, "bcs.json") {
 		return "There is no save file of the blockchain!"
-	} else if rff.File == "./ws" {
+	} else if strings.Contains(rff.File, "ws.json") {
 		return "There is no save file of the wallet!"
 	}
 	return fmt.Sprintf("Failed to read file: %s", rff.File)
@@ -128,9 +134,14 @@ func (w *WalletDBHasItems) Error() string {
 	return fmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s\n", w.Dir)
 }
 
+func (bhd *BlockHashDifferent) Error() string {
+	return fmt.Sprintf("Block hash does not match the computed Root hash!\nComputed hash: %s\nBlock hash: %s\n",
+		bhd.ComputedHash, bhd.BlockHash)
+}
+
 // ======== HANDLE ERROR FUNCTION ========
 
-// AllErrorsExit - This error means, that if any error has occured, just exit with the ExitCode value.
+// AllErrorsExit - This error means, that if any error has occurred, just exit with the ExitCode value.
 type AllErrorsExit struct {
 	ExitCode int
 }

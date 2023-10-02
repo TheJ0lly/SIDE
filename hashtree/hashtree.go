@@ -1,6 +1,9 @@
 package hashtree
 
-import "crypto/sha256"
+import (
+	"crypto/sha256"
+	"github.com/TheJ0lly/GoChain/metadata"
+)
 
 type Pair struct {
 	mLHash [32]byte
@@ -42,8 +45,8 @@ func GenerateTree(l [][32]byte, t *Tree) [32]byte {
 	return GenerateTree(newList, t)
 }
 
-func ValidateData(name string, t *Tree, rootHash [32]byte) bool {
-	nameHash := sha256.Sum256([]byte(name))
+func ValidateData(name metadata.MetaData, t *Tree, rootHash [32]byte) bool {
+	nameHash := sha256.Sum256([]byte(name.GetMetaDataString()))
 
 	var l []Node
 

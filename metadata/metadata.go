@@ -1,4 +1,4 @@
-package blockchain
+package metadata
 
 type MetaData struct {
 	mSource      string
@@ -27,5 +27,5 @@ func (md *MetaData) GetAssetName() string {
 }
 
 func (md *MetaData) GetMetaDataString() string {
-	return md.mSource + " " + md.mDestination + " " + md.mSource
+	return md.mSource + " " + md.mDestination + " " + md.mAssetName
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/hashtree"
+	"github.com/TheJ0lly/GoChain/metadata"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"os"
 	"strconv"
@@ -58,26 +59,22 @@ func getMetadataIESlice(b *Block) []metadataIE {
 	return mdSlice
 }
 
-func GetMetadataSlice(mie []metadataIE) []*MetaData {
-	var mdSlice []*MetaData
+func GetMetadataSlice(mie []metadataIE) []*metadata.MetaData {
+	var mdSlice []*metadata.MetaData
 
 	for _, md := range mie {
-		mdSlice = append(mdSlice, &MetaData{
-			mSource:      md.Source,
-			mDestination: md.Destination,
-			mAssetName:   md.AssetName,
-		})
+		mdSlice = append(mdSlice, metadata.CreateNewMetaData(md.Source, md.Destination, md.AssetName))
 	}
 
 	return mdSlice
 }
 
-func (b *Block) Import(location string) any {
+func ImportBlock(location string) (*Block, error) {
 	//UnMarshalling the blockIE
 	allBytes, err := os.ReadFile(location)
 
 	if err != nil {
-		return &generalerrors.ReadFileFailed{File: location}
+		return nil, &generalerrors.ReadFileFailed{File: location}
 	}
 
 	var bie blockIE
@@ -85,7 +82,7 @@ func (b *Block) Import(location string) any {
 	err = json.Unmarshal(allBytes, &bie)
 
 	if err != nil {
-		return &generalerrors.JSONUnMarshalFailed{Object: "Block"}
+		return nil, &generalerrors.JSONUnMarshalFailed{Object: "Block"}
 	}
 
 	//Recreating the current hash
@@ -99,41 +96,49 @@ func (b *Block) Import(location string) any {
 		x++
 	}
 
-	//Recreating the previous hash
-	var previousHash [32]byte
-	x = 0
+	//Recreating the previous hash, if exists
+	var PrevHash []byte = nil
 
-	for i := 0; i < len(bie.PrevHash); i += 2 {
-		previousHash[x] = getByteFromHex(bie.PrevHash[i], bie.PrevHash[i+1])
-		x++
+	if bie.PrevHash != "" {
+
+		var previousHash [32]byte
+		x = 0
+
+		for i := 0; i < len(bie.PrevHash); i += 2 {
+			previousHash[x] = getByteFromHex(bie.PrevHash[i], bie.PrevHash[i+1])
+			x++
+		}
+
+		PrevHash = append(PrevHash, previousHash[:]...)
 	}
 
 	//Generating the metadata
-
-	metadata := GetMetadataSlice(bie.MetaData)
+	md := GetMetadataSlice(bie.MetaData)
 
 	//Generating the hash tree
 	ht := &hashtree.Tree{}
 
-	mh := getMetaDataHashes(metadata)
+	mh := getMetaDataHashes(md)
 
 	rootHash := hashtree.GenerateTree(mh, ht)
 
 	if bytes.Compare(currentHash[:], rootHash[:]) != 0 {
-		fmt.Printf("Error: Block hash is not equal with the hash tree root")
-		return nil
+		return nil, &generalerrors.BlockHashDifferent{
+			BlockHash:    fmt.Sprintf("%X", currentHash),
+			ComputedHash: fmt.Sprintf("%X", rootHash),
+		}
 	}
 
 	return &Block{
-		mMetaData: metadata,
-		mPrevHash: previousHash[:],
+		mMetaData: md,
+		mPrevHash: PrevHash,
 		mCurrHash: currentHash[:],
 		mHashTree: ht,
-	}
+	}, nil
 
 }
 
-func (b *Block) Export(folderLocation string) error {
+func ExportBlock(folderLocation string, b *Block) error {
 	bie := blockIE{
 		MetaData: getMetadataIESlice(b),
 		PrevHash: fmt.Sprintf("%X", b.mPrevHash),
@@ -141,7 +146,7 @@ func (b *Block) Export(folderLocation string) error {
 
 	currHashStr := fmt.Sprintf("%X", b.mCurrHash)
 
-	byteToWrite, err := json.Marshal(bie)
+	bytesToWrite, err := json.MarshalIndent(bie, "", "    ")
 
 	if err != nil {
 		return &generalerrors.JSONMarshalFailed{Object: "Block"}
@@ -149,7 +154,7 @@ func (b *Block) Export(folderLocation string) error {
 
 	path := osspecifics.CreatePath(folderLocation, currHashStr)
 
-	err = os.WriteFile(path, byteToWrite, 0666)
+	err = os.WriteFile(path, bytesToWrite, 0666)
 
 	if err != nil {
 		return &generalerrors.WriteFileFailed{File: path}
