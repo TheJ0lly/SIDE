@@ -41,9 +41,8 @@ func (bc *BlockChain) AddData(from string, asset *asset.Asset, destination strin
 
 	b.mHashTree.ClearTree()
 	hl := getMetaDataHashes(b.mMetaData)
-	hash := hashtree.GenerateTree(hl, b.mHashTree)
 
-	fmt.Printf("New block hash --- %X\n", hash)
+	ht := hashtree.GenerateTree(hl)
 
 	fileName := fmt.Sprintf("%X", b.mCurrHash)
 
@@ -56,7 +55,7 @@ func (bc *BlockChain) AddData(from string, asset *asset.Asset, destination strin
 		}
 	}
 
-	b.mCurrHash = hash[:]
+	b.mCurrHash = ht.RootHash[:]
 	err = ExportBlock(bc.mDatabaseDir, b)
 
 	if err != nil {

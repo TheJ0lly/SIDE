@@ -116,16 +116,14 @@ func ImportBlock(location string) (*Block, error) {
 	md := GetMetadataSlice(bie.MetaData)
 
 	//Generating the hash tree
-	ht := &hashtree.Tree{}
-
 	mh := getMetaDataHashes(md)
 
-	rootHash := hashtree.GenerateTree(mh, ht)
+	ht := hashtree.GenerateTree(mh)
 
-	if bytes.Compare(currentHash[:], rootHash[:]) != 0 {
+	if bytes.Compare(currentHash[:], ht.RootHash[:]) != 0 {
 		return nil, &generalerrors.BlockHashDifferent{
 			BlockHash:    fmt.Sprintf("%X", currentHash),
-			ComputedHash: fmt.Sprintf("%X", rootHash),
+			ComputedHash: fmt.Sprintf("%X", ht.RootHash),
 		}
 	}
 

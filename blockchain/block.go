@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"github.com/TheJ0lly/GoChain/metadata"
 
 	"github.com/TheJ0lly/GoChain/hashtree"
@@ -29,16 +28,12 @@ func createGenesisBlock() *Block {
 	var hashSlice [][32]byte
 	hashSlice = append(hashSlice, sha256.Sum256([]byte(mdSlice[0].GetMetaDataString())))
 
-	ht := &hashtree.Tree{}
-
-	hash := hashtree.GenerateTree(hashSlice, ht)
-
-	fmt.Printf("Genesis Tree Root --- %X\n", hash)
+	ht := hashtree.GenerateTree(hashSlice)
 
 	return &Block{
 		mMetaData: mdSlice,
 		mPrevHash: nil,
-		mCurrHash: hash[:],
+		mCurrHash: ht.RootHash[:],
 		mHashTree: ht,
 	}
 }
