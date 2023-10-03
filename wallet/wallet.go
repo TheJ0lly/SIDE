@@ -4,130 +4,92 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"fmt"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"os"
+	"path/filepath"
 
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 )
 
 const (
-	keyBitSize = 256
+	//64 bits (Source name) + 8 bits (Space) + 64 bits (Destination name) + 8 bits (Space) + 64 bits (Asset Name) + 8 bits (Empty/NULL)
+	keyBitSize        = 216
+	usernameMaxLength = 8
 )
 
 type Wallet struct {
-	username    string
-	password    string
-	publicKey   rsa.PublicKey
-	privateKey  rsa.PrivateKey
-	databaseDir string
-	assets      []*asset.Asset
+	mUsername    string
+	mPassword    [32]byte
+	mPublicKey   rsa.PublicKey
+	mPrivateKey  rsa.PrivateKey
+	mDatabaseDir string
+	mAssets      []*asset.Asset
 }
 
 // CreateNewWallet - This function will create a wallet.
 func CreateNewWallet(username string, password string, dbLoc string) (*Wallet, error) {
-	files, err := os.ReadDir(dbLoc)
-
-	if err != nil {
-		fmt.Printf("Error: %s\n", err.Error())
-		return nil, &generalerrors.ReadDirFailed{Dir: dbLoc}
+	if len(username) > usernameMaxLength {
+		return nil, &generalerrors.UsernameTooLong{Length: usernameMaxLength}
 	}
 
-	if len(files) > 0 {
-		fmt.Printf("Warning: Folder %s contains files! Do you want to delete them?[y\\n]\n", dbLoc)
-		var choice string
-		_, err := fmt.Scanln(&choice)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if choice != "y" {
-			return nil, &generalerrors.WalletDBHasItems{Dir: dbLoc}
-		}
-
-		err = clearFolder(dbLoc, files)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	privKey, err := rsa.GenerateKey(rand.Reader, keyBitSize)
+	privateKey, err := rsa.GenerateKey(rand.Reader, keyBitSize)
 
 	if err != nil {
-		fmt.Printf("Error: %s\n", err.Error())
 		return nil, err
 	}
 
 	passBytes := sha256.Sum256([]byte(password))
 
-	passBytesStr := fmt.Sprintf("%X", passBytes)
-
-	w := &Wallet{username: username, password: passBytesStr, privateKey: *privKey, publicKey: privKey.PublicKey, assets: nil, databaseDir: dbLoc}
+	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: *privateKey, mPublicKey: privateKey.PublicKey, mAssets: nil, mDatabaseDir: dbLoc}
 
 	return w, nil
 }
 
 // AddAsset - This function will add an asset to the wallet.
-func (w *Wallet) AddAsset(assetName string, fileLocation string) bool {
+func (w *Wallet) AddAsset(assetName string, fileLocation string) (*asset.Asset, error) {
 
 	if w.checkAssetExists(assetName) {
-		fmt.Printf("Error: There is already an asset with this name - \"%s\"\n", assetName)
-		return false
+		return nil, &generalerrors.AssetAlreadyExists{AssetName: assetName}
 	}
 
 	temp, err := os.Stat(fileLocation)
 
 	if os.IsNotExist(err) {
-		fmt.Printf("Error: Asset location does not exist! - \"%s\"\n", fileLocation)
-		return false
+		return nil, &generalerrors.AssetInitialLocationDoesNotExist{Location: fileLocation}
 	}
 
 	if temp.IsDir() {
-		fmt.Printf("Error: Asset is a folder! - \"%s\"\n", fileLocation)
-		return false
+		return nil, &generalerrors.AssetIsAFolder{Location: fileLocation}
 	}
 
 	fileData, err := os.ReadFile(fileLocation)
 
 	if err != nil {
-		fmt.Printf("Error: %s\n", err.Error())
-		return false
+		return nil, &generalerrors.ReadFileFailed{File: fileLocation}
 	}
+
+	var assetToAdd *asset.Asset
+	AssetPath := osspecifics.CreatePath(w.mDatabaseDir, assetName)
 
 	switch asset.DetermineAssetType(fileData) {
 	case asset.JPEG:
-		assetToAdd := asset.CreateNewAsset(assetName, asset.JPEG, fileData)
-		w.assets = append(w.assets, assetToAdd)
-		err = os.WriteFile(osspecifics.CreatePath(w.databaseDir, assetName), fileData, 0444)
-
-		if err != nil {
-			fmt.Printf("Error: Failed to add \"%s\" as an asset.\nError: ", assetName)
-			generalerrors.HandleError(err)
-			return false
-		}
-
-		fmt.Printf("Success: Added \"%s\" as an asset.\nFormat: JPEG\nSize: %d bytes\n", assetName, len(fileData))
-		return true
+		assetToAdd = asset.CreateNewAsset(assetName, asset.JPEG, fileData)
 	case asset.PDF:
-		assetToAdd := asset.CreateNewAsset(assetName, asset.PDF, fileData)
-		w.assets = append(w.assets, assetToAdd)
-		err = os.WriteFile(osspecifics.CreatePath(w.databaseDir, assetName), fileData, 0444)
-
-		if err != nil {
-			fmt.Printf("Error: Failed to add \"%s\" as an asset.\nError: ", assetName)
-			generalerrors.HandleError(err)
-			return false
-		}
-
-		fmt.Printf("Succes: Added \"%s\" as an asset.\nFormat: PDF\nSize: %d bytes\n", assetName, len(fileData))
-		return true
+		assetToAdd = asset.CreateNewAsset(assetName, asset.PDF, fileData)
 	default:
-		fmt.Printf("Error: Failed to add \"%s\" as an asset.\nError: Unknown format!\n", assetName)
-		return false
+		fileExt := filepath.Ext(AssetPath)
+		return nil, &generalerrors.UnknownFormat{FileExt: fileExt}
 	}
+
+	err = os.WriteFile(AssetPath, fileData, 0444)
+
+	if err != nil {
+		return nil, &generalerrors.WriteFileFailed{File: AssetPath}
+	}
+
+	w.mAssets = append(w.mAssets, assetToAdd)
+	return assetToAdd, nil
 }
 
 // RemoveAsset - This function will remove an asset from the wallet.
@@ -135,7 +97,7 @@ func (w *Wallet) RemoveAsset(assetName string) bool {
 	a := w.getAsset(assetName)
 
 	if a != nil {
-		err := os.Remove(osspecifics.CreatePath(w.databaseDir, assetName))
+		err := os.Remove(osspecifics.CreatePath(w.mDatabaseDir, assetName))
 
 		if err != nil {
 			generalerrors.HandleError(err)
@@ -145,10 +107,10 @@ func (w *Wallet) RemoveAsset(assetName string) bool {
 		return false
 	}
 
-	// This removes the asset from the slice of assets
-	for i, as := range w.assets {
+	// This removes the asset from the slice of mAssets
+	for i, as := range w.mAssets {
 		if as == a {
-			w.assets = append(w.assets[:i], w.assets[i+1:]...)
+			w.mAssets = append(w.mAssets[:i], w.mAssets[i+1:]...)
 			break
 		}
 	}
@@ -157,18 +119,15 @@ func (w *Wallet) RemoveAsset(assetName string) bool {
 }
 
 func (w *Wallet) GetUsername() string {
-	return w.username
+	return w.mUsername
 }
 
 func (w *Wallet) ConfirmPassword(pass string) bool {
 	passBytes := sha256.Sum256([]byte(pass))
 
-	passBytesStr := fmt.Sprintf("%X", passBytes)
+	return w.mPassword == passBytes
+}
 
-	if w.password == passBytesStr {
-		w.password = passBytesStr
-		return true
-	}
-
-	return false
+func (w *Wallet) GetDBLocation() string {
+	return w.mDatabaseDir
 }

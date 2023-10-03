@@ -2,8 +2,6 @@ package wallet
 
 import (
 	"fmt"
-	"github.com/TheJ0lly/GoChain/osspecifics"
-	"io/fs"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
@@ -11,7 +9,7 @@ import (
 
 // This function
 func (w *Wallet) checkAssetExists(assetName string) bool {
-	files, err := os.ReadDir(w.databaseDir)
+	files, err := os.ReadDir(w.mDatabaseDir)
 
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
@@ -30,7 +28,7 @@ func (w *Wallet) checkAssetExists(assetName string) bool {
 // This function will be used when making transactions
 func (w *Wallet) getAsset(assetName string) *asset.Asset {
 	if w.checkAssetExists(assetName) {
-		for _, a := range w.assets {
+		for _, a := range w.mAssets {
 			if a.GetName() == assetName {
 				return a
 			}
@@ -38,18 +36,5 @@ func (w *Wallet) getAsset(assetName string) *asset.Asset {
 	}
 
 	fmt.Printf("No asset with the name \"%s\" can be found in your wallet\n", assetName)
-	return nil
-}
-
-func clearFolder(dbLoc string, files []fs.DirEntry) error {
-	for _, f := range files {
-		fileName := osspecifics.CreatePath(dbLoc, f.Name())
-		err := os.Remove(fileName)
-
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

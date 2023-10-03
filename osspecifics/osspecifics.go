@@ -1,6 +1,8 @@
 package osspecifics
 
 import (
+	"github.com/TheJ0lly/GoChain/generalerrors"
+	"os"
 	"slices"
 )
 
@@ -34,4 +36,23 @@ func GetFileName(filepath string) string {
 	}
 
 	return string(filename)
+}
+
+func ClearFolder(folder string) error {
+	files, err := os.ReadDir(folder)
+
+	if err != nil {
+		return &generalerrors.ReadDirFailed{Dir: folder}
+	}
+
+	for _, f := range files {
+		path := CreatePath(folder, f.Name())
+		err = os.Remove(path)
+
+		if err != nil {
+			return &generalerrors.RemoveFileFailed{File: path}
+		}
+	}
+
+	return nil
 }

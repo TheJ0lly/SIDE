@@ -71,7 +71,6 @@ func getMetaDataHashes(md []*metadata.MetaData) [][32]byte {
 func (bc *BlockChain) getProperBlock() (*Block, bool) {
 	if len(bc.mLastBlock.mMetaData) == blockDataCapacity || checkIfGenesis(bc.mLastBlock) {
 		nb := createNewBlock(bc.mLastBlock)
-		bc.mLastBlock = nb
 		return nb, false
 	} else {
 		return bc.mLastBlock, true

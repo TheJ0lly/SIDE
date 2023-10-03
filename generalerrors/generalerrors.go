@@ -73,6 +73,30 @@ type BlockHashDifferent struct {
 	ComputedHash string
 }
 
+type AssetAlreadyExists struct {
+	AssetName string
+}
+
+type AssetInitialLocationDoesNotExist struct {
+	Location string
+}
+
+type AssetIsAFolder struct {
+	Location string
+}
+
+type UsernameTooLong struct {
+	Length int
+}
+
+type UnknownFormat struct {
+	FileExt string
+}
+
+type FailedExport struct {
+	Object string
+}
+
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
@@ -127,16 +151,40 @@ func (bm *BlockMissing) Error() string {
 }
 
 func (bc *BlockchainDBHasItems) Error() string {
-	return fmt.Sprintf("Folder used for Blockchain contains files! Directory: %s\n", bc.Dir)
+	return fmt.Sprintf("Folder used for Blockchain contains files! Directory: %s", bc.Dir)
 }
 
 func (w *WalletDBHasItems) Error() string {
-	return fmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s\n", w.Dir)
+	return fmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s", w.Dir)
 }
 
 func (bhd *BlockHashDifferent) Error() string {
-	return fmt.Sprintf("Block hash does not match the computed Root hash!\nComputed hash: %s\nBlock hash: %s\n",
+	return fmt.Sprintf("Block hash does not match the computed Root hash!\nComputed hash: %s\nBlock hash: %s",
 		bhd.ComputedHash, bhd.BlockHash)
+}
+
+func (aae *AssetAlreadyExists) Error() string {
+	return fmt.Sprintf("There already is an asset with this name: %s", aae.AssetName)
+}
+
+func (ailne *AssetInitialLocationDoesNotExist) Error() string {
+	return fmt.Sprintf("The file path is invalid: %s", ailne.Location)
+}
+
+func (aif *AssetIsAFolder) Error() string {
+	return fmt.Sprintf("The location is a folder: %s", aif.Location)
+}
+
+func (utl *UsernameTooLong) Error() string {
+	return fmt.Sprintf("The entered username passes the maximum length of: %d", utl.Length)
+}
+
+func (ufa *UnknownFormat) Error() string {
+	return fmt.Sprintf("Unknown file format! File extension: %s", ufa.FileExt)
+}
+
+func (fe *FailedExport) Error() string {
+	return fmt.Sprintf("Failed to export: %s", fe.Object)
 }
 
 // ======== HANDLE ERROR FUNCTION ========

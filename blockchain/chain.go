@@ -33,7 +33,7 @@ func CreateNewBlockchain(dbLoc string) (*BlockChain, error) {
 }
 
 // AddData - will add some data onto the blockchain.
-func (bc *BlockChain) AddData(from string, asset *asset.Asset, destination string) {
+func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asset) error {
 	md := metadata.CreateNewMetaData(from, destination, asset.GetName())
 
 	b, blockExists := bc.getProperBlock()
@@ -46,12 +46,13 @@ func (bc *BlockChain) AddData(from string, asset *asset.Asset, destination strin
 
 	fileName := fmt.Sprintf("%X", b.mCurrHash)
 
-	err := os.Remove(osspecifics.CreatePath(bc.mDatabaseDir, fileName))
+	lastBlockOldHash := osspecifics.CreatePath(bc.mDatabaseDir, fileName)
+	err := os.Remove(lastBlockOldHash)
 
 	if err != nil {
 		if blockExists {
 			fmt.Printf("Error: Failed to remove file!\n")
-			return
+			return &generalerrors.RemoveFileFailed{File: lastBlockOldHash}
 		}
 	}
 
@@ -60,5 +61,15 @@ func (bc *BlockChain) AddData(from string, asset *asset.Asset, destination strin
 
 	if err != nil {
 		fmt.Printf("Error: Failed to export block!\n")
+		return &generalerrors.FailedExport{Object: "Block"}
 	}
+
+	bc.mBlocks = append(bc.mBlocks, b)
+	bc.mLastBlock = b
+
+	return nil
+}
+
+func (bc *BlockChain) GetDBLocation() string {
+	return bc.mDatabaseDir
 }
