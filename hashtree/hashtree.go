@@ -37,21 +37,6 @@ func GenerateTree(l [][32]byte) *Tree {
 	generateTreeRecursive(l, t)
 
 	return t
-
-	//for i := 0; i < len(l); i += 2 {
-	//	p := Pair{mLHash: l[i], mRHash: l[i+1]}
-	//
-	//	newList = append(newList, p.generateHash())
-	//}
-	//
-	//if len(newList) == 1 {
-	//	t.mTreeMatrix = append(t.mTreeMatrix, newList)
-	//	return newList[0]
-	//} else if len(newList)%2 == 1 {
-	//	newList = append(newList, newList[len(newList)-1])
-	//}
-	//t.mTreeMatrix = append(t.mTreeMatrix, newList)
-
 }
 
 func generateTreeRecursive(l [][32]byte, t *Tree) {
@@ -78,7 +63,7 @@ func generateTreeRecursive(l [][32]byte, t *Tree) {
 
 }
 
-func ValidateData(name metadata.MetaData, t *Tree, rootHash [32]byte) bool {
+func ValidateData(name metadata.MetaData, t *Tree) bool {
 	nameHash := sha256.Sum256([]byte(name.GetMetaDataString()))
 
 	var l []Node
@@ -100,7 +85,7 @@ func ValidateData(name metadata.MetaData, t *Tree, rootHash [32]byte) bool {
 		nameHash = p.generateHash()
 	}
 
-	return nameHash == rootHash
+	return nameHash == t.RootHash
 }
 
 func (t *Tree) ClearTree() {
