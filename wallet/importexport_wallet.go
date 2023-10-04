@@ -26,7 +26,7 @@ func ImportWallet(username string) (*Wallet, error) {
 		return nil, err
 	}
 
-	path := osspecifics.CreatePath(dir, username+".json")
+	path := osspecifics.CreatePath(dir, username)
 	allBytes, err := os.ReadFile(path)
 
 	if err != nil {
@@ -105,7 +105,7 @@ func (w *Wallet) ExportWallet() error {
 		return &generalerrors.JSONMarshalFailed{Object: "Wallet"}
 	}
 
-	path := osspecifics.CreatePath(dir, wie.Username+".json")
+	path := osspecifics.CreatePath(dir, wie.Username)
 
 	err = os.WriteFile(path, bytesToWrite, 0666)
 

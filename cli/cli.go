@@ -17,7 +17,6 @@ const (
 	Success       = iota
 	HelpCalled
 	NoPassOrUser
-	CreateNewBCNoDBGiven
 	CreateNewWalletNoDBGiven
 	WrongNumberOfArgsGivenToOp
 	AddAssetFailed
@@ -43,9 +42,7 @@ const (
 type FlagValues struct {
 	Username         string
 	Password         string
-	NewBlockchain    bool
 	NewWallet        bool
-	BlockchainDir    string
 	WalletDir        string
 	Operation        string
 	DeleteBCSave     bool
@@ -59,9 +56,7 @@ func displayHelp() {
 	fmt.Print("  -h          \n      Display help menu.\n")
 	fmt.Print("  -u <string> \n      Input the username of the wallet you want to log in.\n")
 	fmt.Print("  -p <string> \n      Input the password of the wallet you want to log in.\n")
-	fmt.Print("  -nb         \n      Creates a new instance of the blockchain.\n")
 	fmt.Print("  -nw         \n      Creates a new instance of a wallet.\n")
-	fmt.Print("  -db <string>\n      Input the location of the database of the blockchain. Effective only if `nb` flag is used.\n")
 	fmt.Print("  -dw <string>\n      Input the location of the database of the wallet. Effective only if `nw` flag is used.\n")
 	fmt.Print("  -DW <string>\n      Delete the wallet of an user.\n")
 	fmt.Print("  -op <string>\n      Input the name of the operation you want to perform:\n")
@@ -74,12 +69,9 @@ func InitFlags() *FlagValues {
 	H := flag.Bool("h", false, "")
 	U := flag.String("u", NoValuePassed, "")
 	P := flag.String("p", NoValuePassed, "")
-	NewBlockchain := flag.Bool("nb", false, "")
 	NewWallet := flag.Bool("nw", false, "")
-	DbBc := flag.String("db", NoValuePassed, "")
 	DbWallet := flag.String("dw", NoValuePassed, "")
 	Operation := flag.String("op", NoValuePassed, "")
-	DeleteBlockchainSave := flag.Bool("DB", false, "")
 	DeleteWalletSave := flag.Bool("DW", false, "")
 
 	flag.Usage = displayHelp
@@ -96,17 +88,6 @@ func InitFlags() *FlagValues {
 		os.Exit(NoPassOrUser)
 	}
 
-	if *DbBc != NoValuePassed {
-		if *NewBlockchain == false {
-			fmt.Print("Warning: flag 'db' is ineffective.\n")
-		}
-	} else {
-		if *NewBlockchain {
-			fmt.Print("Error: Cannot create a new Blockchain instance without a folder for the database!\n\n")
-			os.Exit(CreateNewBCNoDBGiven)
-		}
-	}
-
 	if *DbWallet != NoValuePassed {
 		if *NewWallet == false {
 			fmt.Print("Warning: flag 'dw' is ineffective.\n")
@@ -121,46 +102,23 @@ func InitFlags() *FlagValues {
 	return &FlagValues{
 		Username:         *U,
 		Password:         *P,
-		NewBlockchain:    *NewBlockchain,
 		NewWallet:        *NewWallet,
-		BlockchainDir:    *DbBc,
 		WalletDir:        *DbWallet,
 		Operation:        *Operation,
-		DeleteBCSave:     *DeleteBlockchainSave,
 		DeleteWalletSave: *DeleteWalletSave,
 	}
 
 }
 
-func getBlockchain(fv *FlagValues) (*blockchain.BlockChain, error) {
+func getBlockchain() (*blockchain.BlockChain, error) {
 	var BC *blockchain.BlockChain
 	var err error
-	var files []fs.DirEntry
 
-	if fv.NewBlockchain { // Create new blockchain
-		files, err = os.ReadDir(fv.BlockchainDir)
+	// Import blockchain
+	BC, err = blockchain.ImportChain()
 
-		if err != nil {
-			return nil, &generalerrors.ReadDirFailed{Dir: fv.BlockchainDir}
-		}
-
-		if len(files) > 0 {
-			return nil, &generalerrors.BlockchainDBHasItems{Dir: fv.BlockchainDir}
-		}
-
-		BC, err = blockchain.CreateNewBlockchain(fv.BlockchainDir)
-
-		if err != nil {
-			return nil, err
-		}
-
-		fmt.Print("Created a new Blockchain instance.\n")
-	} else { // Import blockchain
-		BC, err = blockchain.ImportChain()
-
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	return BC, nil
@@ -353,7 +311,7 @@ func Execute(fv *FlagValues) {
 	}
 
 	//Blockchain handling
-	BC, err = getBlockchain(fv)
+	BC, err = getBlockchain()
 
 	if err != nil {
 		generalerrors.HandleError(err)
