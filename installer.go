@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
@@ -11,8 +10,8 @@ import (
 )
 
 func InstallerHelp() {
-	fmt.Printf("Usage: <exec> -db <string>\n")
-	fmt.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
+	log.Printf("Usage: <exec> -db <string>\n")
+	log.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
 }
 
 func main() {

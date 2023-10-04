@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
@@ -13,7 +12,7 @@ import (
 
 func main() {
 
-	fmt.Printf("Uninstalling BlockChain!\n")
+	log.Printf("Uninstalling BlockChain!\n")
 
 	dir, err := os.Getwd()
 
@@ -41,7 +40,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Deleting all wallets and their folder...\n")
+	log.Printf("Deleting all wallets and their folder...\n")
 
 	files, err := os.ReadDir(dir)
 
@@ -67,7 +66,7 @@ func main() {
 
 			if err != nil {
 				generalerrors.HandleError(err)
-				fmt.Printf("Error: Failed to remove the wallet save\n")
+				log.Printf("Error: Failed to remove the wallet save\n")
 				continue
 			}
 		} else if f.Name() != "GoChain_Uninstaller.exe" {
@@ -79,6 +78,6 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Uninstall successful\n")
-	fmt.Printf("For now you have to manually delete the uninstaller. Sorry for the inconvenience.\n")
+	log.Printf("Uninstall successful\n")
+	log.Printf("For now you have to manually delete the uninstaller. Sorry for the inconvenience.\n")
 }

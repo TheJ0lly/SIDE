@@ -3,6 +3,7 @@ package generalerrors
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -210,7 +211,7 @@ func (aee *AllErrorsExit) Error() string {
 // If you want to exit on a specific error, just add it after the initial error, and if it matches, the program will exit with 1.
 // If you want to exit on all errors, doesn't matter which specific one, just use AllErrorsExit, and pass the error code you want to exit with.
 func HandleError(err error, errorsToFail ...error) {
-	fmt.Printf("Error: %s\n", err.Error())
+	log.Printf("Error: %s\n", err.Error())
 
 	if len(errorsToFail) != 0 {
 		var aee *AllErrorsExit

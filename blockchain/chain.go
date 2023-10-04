@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/metadata"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"log"
 	"os"
 
 	"github.com/TheJ0lly/GoChain/asset"
@@ -51,7 +52,7 @@ func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asse
 
 	if err != nil {
 		if blockExists {
-			fmt.Printf("Error: Failed to remove file!\n")
+			log.Printf("Error: Failed to remove file!\n")
 			return &generalerrors.RemoveFileFailed{File: lastBlockOldHash}
 		}
 	}
@@ -60,7 +61,7 @@ func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asse
 	err = ExportBlock(bc.mDatabaseDir, b)
 
 	if err != nil {
-		fmt.Printf("Error: Failed to export block!\n")
+		log.Printf("Error: Failed to export block!\n")
 		return &generalerrors.FailedExport{Object: "Block"}
 	}
 

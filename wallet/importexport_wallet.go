@@ -4,10 +4,10 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"log"
 	"os"
 )
 
@@ -53,7 +53,7 @@ func ImportWallet(username string) (*Wallet, error) {
 			return nil, &generalerrors.ReadFileFailed{File: path}
 		}
 
-		ft := asset.DetermineAssetType(bytesFromFile)
+		ft := asset.DetermineType(bytesFromFile)
 
 		if ft == asset.UNKNOWN {
 			return nil, &generalerrors.UnknownFormat{FileExt: path}
@@ -83,7 +83,7 @@ func (w *Wallet) ExportWallet() error {
 		return err
 	}
 
-	fmt.Printf("Exporting Wallet state...\n")
+	log.Printf("Exporting Wallet state...\n")
 
 	var walletAssets []string
 
@@ -113,6 +113,6 @@ func (w *Wallet) ExportWallet() error {
 		return &generalerrors.WriteFileFailed{File: path}
 	}
 
-	fmt.Printf("Wallet state exported successfully!\n")
+	log.Printf("Wallet state exported successfully!\n")
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"log"
 	"os"
 	"slices"
 )
@@ -75,7 +76,7 @@ func (bc *BlockChain) ExportChain() error {
 		return err
 	}
 
-	fmt.Printf("Exporting BlockChain state...\n")
+	log.Printf("Exporting BlockChain state...\n")
 	bcIE := blockchainIE{
 		DatabaseDir:   bc.mDatabaseDir,
 		LastBlockHash: fmt.Sprintf("%X", bc.mLastBlock.mCurrHash),
@@ -98,12 +99,12 @@ func (bc *BlockChain) ExportChain() error {
 		err = ExportBlock(bc.GetDBLocation(), b)
 
 		if err != nil {
-			fmt.Printf("Error: Failed to export block!\n")
+			log.Printf("Error: Failed to export block!\n")
 			return &generalerrors.FailedExport{Object: "Block"}
 		}
 
 	}
 
-	fmt.Print("Blockchain state exported successfully!\n")
+	log.Print("Blockchain state exported successfully!\n")
 	return nil
 }

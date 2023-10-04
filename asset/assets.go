@@ -1,8 +1,6 @@
 package asset
 
-import (
-	"fmt"
-)
+import "log"
 
 /*
 JPEG = FFD8{...}FFD9
@@ -36,8 +34,8 @@ func CreateNewAsset(assetName string, ft FileType, data []byte) *Asset {
 	return &Asset{mName: assetName, mFileType: ft, mData: data}
 }
 
-// DetermineAssetType - This function will determine the type of asset to upload to the wallet.
-func DetermineAssetType(data []byte) FileType {
+// DetermineType - This function will determine the type of asset to upload to the wallet.
+func DetermineType(data []byte) FileType {
 
 	if determineJPEG(data) {
 		return JPEG
@@ -72,5 +70,5 @@ func (a *Asset) PrintInfo() {
 		Type = "PDF"
 	}
 
-	fmt.Printf("Asset info\n  Name: %s\n  Type: %s\n  Data Length: %d\n", a.mName, Type, len(a.mData))
+	log.Printf("Asset info\n  Name: %s\n  Type: %s\n  Data Length: %d\n", a.mName, Type, len(a.mData))
 }
