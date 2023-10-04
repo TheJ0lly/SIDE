@@ -97,6 +97,10 @@ type FailedExport struct {
 	Object string
 }
 
+type AssetDoesNotExist struct {
+	AssetName string
+}
+
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
@@ -185,6 +189,10 @@ func (ufa *UnknownFormat) Error() string {
 
 func (fe *FailedExport) Error() string {
 	return fmt.Sprintf("Failed to export: %s", fe.Object)
+}
+
+func (ane *AssetDoesNotExist) Error() string {
+	return fmt.Sprintf("Asset does not exist: %s", ane.AssetName)
 }
 
 // ======== HANDLE ERROR FUNCTION ========

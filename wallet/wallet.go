@@ -93,29 +93,42 @@ func (w *Wallet) AddAsset(assetName string, fileLocation string) (*asset.Asset, 
 }
 
 // RemoveAsset - This function will remove an asset from the wallet.
-func (w *Wallet) RemoveAsset(assetName string) bool {
+func (w *Wallet) RemoveAsset(assetName string) (*asset.Asset, error) {
 	a := w.getAsset(assetName)
 
 	if a != nil {
-		err := os.Remove(osspecifics.CreatePath(w.mDatabaseDir, assetName))
+		path := osspecifics.CreatePath(w.mDatabaseDir, assetName)
+		err := os.Remove(path)
 
 		if err != nil {
-			generalerrors.HandleError(err)
-			return false
+			return nil, &generalerrors.RemoveFileFailed{File: path}
 		}
 	} else {
-		return false
+		return nil, &generalerrors.AssetDoesNotExist{AssetName: assetName}
 	}
+
+	var assetToRet *asset.Asset
 
 	// This removes the asset from the slice of mAssets
 	for i, as := range w.mAssets {
 		if as == a {
+			assetToRet = a
 			w.mAssets = append(w.mAssets[:i], w.mAssets[i+1:]...)
 			break
 		}
 	}
 
-	return true
+	return assetToRet, nil
+}
+
+func (w *Wallet) ViewAssets() []asset.Asset {
+	var assetSlice []asset.Asset
+
+	for _, a := range w.mAssets {
+		assetSlice = append(assetSlice, a.GetAssetCopy())
+	}
+
+	return assetSlice
 }
 
 func (w *Wallet) GetUsername() string {

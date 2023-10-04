@@ -94,6 +94,16 @@ func (bc *BlockChain) ExportChain() error {
 		return &generalerrors.WriteFileFailed{File: path}
 	}
 
+	for _, b := range bc.mBlocks {
+		err = ExportBlock(bc.GetDBLocation(), b)
+
+		if err != nil {
+			fmt.Printf("Error: Failed to export block!\n")
+			return &generalerrors.FailedExport{Object: "Block"}
+		}
+
+	}
+
 	fmt.Print("Blockchain state exported successfully!\n")
 	return nil
 }

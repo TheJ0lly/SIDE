@@ -1,5 +1,9 @@
 package asset
 
+import (
+	"fmt"
+)
+
 /*
 JPEG = FFD8{...}FFD9
 PDF = %PDF / 25 50 44 46
@@ -48,4 +52,25 @@ func DetermineAssetType(data []byte) FileType {
 // GetName - will return the name of the asset as it is saved by the user.
 func (a *Asset) GetName() string {
 	return a.mName
+}
+
+func (a *Asset) GetAssetCopy() Asset {
+	return Asset{
+		mName:     a.mName,
+		mFileType: a.mFileType,
+		mData:     a.mData,
+	}
+}
+
+func (a *Asset) PrintInfo() {
+	var Type string
+
+	switch a.mFileType {
+	case JPEG:
+		Type = "JPEG"
+	case PDF:
+		Type = "PDF"
+	}
+
+	fmt.Printf("Asset info\n  Name: %s\n  Type: %s\n  Data Length: %d\n", a.mName, Type, len(a.mData))
 }

@@ -13,26 +13,31 @@ import (
 )
 
 const (
-	NoValuePassed              = "NO_VALUE_PASSED"
-	HelpCalled                 = 0
-	NoPassOrUser               = 1
-	CreateNewBCNoDBGiven       = 2
-	CreateNewWalletNoDBGiven   = 3
-	BlockchainFolderIsNotEmpty = 4
-	WalletFolderIsNotEmpty     = 5
-	WrongNumberOfArgsGivenToOp = 6
-	AddAssetFailed             = 7
-	WrongPass                  = 8
-	FailedDeleteBC             = 9
-	FailedDeleteWallet         = 10
-	ExitAfter                  = 11
-	FailedToGetCWD             = 12
+	NoValuePassed = "NO_VALUE_PASSED"
+	Success       = iota
+	HelpCalled
+	NoPassOrUser
+	CreateNewBCNoDBGiven
+	CreateNewWalletNoDBGiven
+	WrongNumberOfArgsGivenToOp
+	AddAssetFailed
+	RemoveAssetFailed
+	WrongPass
+	FailedDeleteBC
+	FailedGetBC
+	FailedDeleteWallet
+	FailedGetWallet
+	ExitAfter
+	FailedToGetCWD
+	UnknownOperation
 )
 
 type OPERATION int
 
 const (
 	AddAsset OPERATION = iota
+	RemoveAsset
+	ViewAssets
 )
 
 type FlagValues struct {
@@ -58,10 +63,11 @@ func displayHelp() {
 	fmt.Print("  -nw         \n      Creates a new instance of a wallet.\n")
 	fmt.Print("  -db <string>\n      Input the location of the database of the blockchain. Effective only if `nb` flag is used.\n")
 	fmt.Print("  -dw <string>\n      Input the location of the database of the wallet. Effective only if `nw` flag is used.\n")
-	fmt.Print("  -DB         \n      Delete the blockchain from the machine.\n")
 	fmt.Print("  -DW <string>\n      Delete the wallet of an user.\n")
 	fmt.Print("  -op <string>\n      Input the name of the operation you want to perform:\n")
 	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
+	fmt.Print("        RemoveAsset <Asset Name:string>\n")
+	fmt.Print("        ViewAssets\n")
 }
 
 func InitFlags() *FlagValues {
@@ -126,7 +132,7 @@ func InitFlags() *FlagValues {
 
 }
 
-func getBlockchain(fv *FlagValues) *blockchain.BlockChain {
+func getBlockchain(fv *FlagValues) (*blockchain.BlockChain, error) {
 	var BC *blockchain.BlockChain
 	var err error
 	var files []fs.DirEntry
@@ -135,19 +141,17 @@ func getBlockchain(fv *FlagValues) *blockchain.BlockChain {
 		files, err = os.ReadDir(fv.BlockchainDir)
 
 		if err != nil {
-			generalerrors.HandleError(err, err)
+			return nil, &generalerrors.ReadDirFailed{Dir: fv.BlockchainDir}
 		}
 
 		if len(files) > 0 {
-			err := &generalerrors.BlockchainDBHasItems{Dir: fv.BlockchainDir}
-			AEE := &generalerrors.AllErrorsExit{ExitCode: BlockchainFolderIsNotEmpty}
-			generalerrors.HandleError(err, AEE)
+			return nil, &generalerrors.BlockchainDBHasItems{Dir: fv.BlockchainDir}
 		}
 
 		BC, err = blockchain.CreateNewBlockchain(fv.BlockchainDir)
 
 		if err != nil {
-			generalerrors.HandleError(err, err)
+			return nil, err
 		}
 
 		fmt.Print("Created a new Blockchain instance.\n")
@@ -155,14 +159,14 @@ func getBlockchain(fv *FlagValues) *blockchain.BlockChain {
 		BC, err = blockchain.ImportChain()
 
 		if err != nil {
-			generalerrors.HandleError(err, err)
+			return nil, err
 		}
 	}
 
-	return BC
+	return BC, nil
 }
 
-func getWallet(fv *FlagValues) *wallet.Wallet {
+func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 	var Wallet *wallet.Wallet
 	var err error
 	var files []fs.DirEntry
@@ -171,19 +175,17 @@ func getWallet(fv *FlagValues) *wallet.Wallet {
 		files, err = os.ReadDir(fv.WalletDir)
 
 		if err != nil {
-			generalerrors.HandleError(err, err)
+			return nil, &generalerrors.ReadDirFailed{Dir: fv.WalletDir}
 		}
 
 		if len(files) > 0 {
-			err := &generalerrors.WalletDBHasItems{Dir: fv.WalletDir}
-			AEE := &generalerrors.AllErrorsExit{ExitCode: WalletFolderIsNotEmpty}
-			generalerrors.HandleError(err, AEE)
+			return nil, &generalerrors.WalletDBHasItems{Dir: fv.WalletDir}
 		}
 
 		Wallet, err = wallet.CreateNewWallet(fv.Username, fv.Password, fv.WalletDir)
 
 		if err != nil {
-			generalerrors.HandleError(err, err)
+			return nil, err
 		}
 
 		fmt.Printf("Created a new Wallet\n")
@@ -191,14 +193,16 @@ func getWallet(fv *FlagValues) *wallet.Wallet {
 		Wallet, err = wallet.ImportWallet(fv.Username)
 
 		if err != nil {
-			generalerrors.HandleError(err, err)
+			return nil, err
 		}
 	}
 
-	return Wallet
+	return Wallet, nil
 }
 
 func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) {
+
+	fmt.Printf("\n")
 	err := BC.ExportChain()
 
 	if err != nil {
@@ -221,14 +225,23 @@ func getOpArgs(op OPERATION) []string {
 	switch op {
 	case AddAsset:
 		operation = "AddAsset"
-	}
-
-	for i := 0; i < len(args); i++ {
-		if args[i] == operation {
-			opArgs = append(opArgs, args[i+1])
-			opArgs = append(opArgs, args[i+2])
-			break
+		for i := 0; i < len(args); i++ {
+			if args[i] == operation {
+				opArgs = append(opArgs, args[i+1])
+				opArgs = append(opArgs, args[i+2])
+				break
+			}
 		}
+	case RemoveAsset:
+		operation = "RemoveAsset"
+		for i := 0; i < len(args); i++ {
+			if args[i] == operation {
+				opArgs = append(opArgs, args[i+1])
+				break
+			}
+		}
+	case ViewAssets:
+		//There is nothing to gather
 	}
 
 	return opArgs
@@ -244,10 +257,91 @@ func walletExists(username string, files []fs.DirEntry) bool {
 	return false
 }
 
+func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.BlockChain) int {
+
+	if fv.Operation == NoValuePassed {
+		return Success
+	}
+
+	switch fv.Operation {
+	case "AddAsset":
+		args := getOpArgs(AddAsset)
+
+		if len(args) != 2 {
+			fmt.Printf("Error: Operation AddAsset did not receive the right amount of arguments\n")
+			return WrongNumberOfArgsGivenToOp
+		}
+
+		asset, err := Wallet.AddAsset(args[0], args[1])
+
+		if err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			fmt.Printf("Failed to add asset: %s\n", args[0])
+			return AddAssetFailed
+		}
+
+		err = BC.AddData("ADDED", Wallet.GetUsername(), asset)
+
+		if err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			fmt.Printf("Failed to add metadata: %s\n", asset.GetName())
+			return AddAssetFailed
+		}
+
+		fmt.Printf("Added Asset \"%s\" successfully!\n", asset.GetName())
+		return Success
+	case "RemoveAsset":
+		args := getOpArgs(RemoveAsset)
+
+		if len(args) != 1 {
+			fmt.Printf("Error: Operation RemoveAsset did not receive the right amount of arguments\n")
+			return WrongNumberOfArgsGivenToOp
+		}
+
+		asset, err := Wallet.RemoveAsset(args[0])
+
+		if err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			fmt.Printf("Failed to remove asset: %s\n", args[0])
+			return RemoveAssetFailed
+		}
+
+		err = BC.AddData(Wallet.GetUsername(), "REMOVED", asset)
+
+		if err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			fmt.Printf("Failed to add metadata: %s\n", asset.GetName())
+			return AddAssetFailed
+		}
+
+		fmt.Printf("Removed Asset \"%s\" successfully!\n", asset.GetName())
+		return Success
+	case "ViewAssets":
+		assetSlice := Wallet.ViewAssets()
+
+		if assetSlice == nil {
+			fmt.Printf("There are no assets to show\n")
+			return Success
+		}
+
+		for _, a := range assetSlice {
+			a.PrintInfo()
+			fmt.Print("\n")
+		}
+
+		return Success
+
+	default:
+		return UnknownOperation
+
+	}
+}
+
 // Execute - will execute the action chosen by the user on the blockchain, local and remote.
 func Execute(fv *FlagValues) {
 
 	var BC *blockchain.BlockChain
+
 	var Wallet *wallet.Wallet
 	var exitAfter = false
 
@@ -259,31 +353,18 @@ func Execute(fv *FlagValues) {
 	}
 
 	//Blockchain handling
-	BC = getBlockchain(fv)
+	BC, err = getBlockchain(fv)
+
+	if err != nil {
+		generalerrors.HandleError(err)
+		os.Exit(FailedGetBC)
+	}
 	//Wallet handling
-	Wallet = getWallet(fv)
+	Wallet, err = getWallet(fv)
 
-	if fv.DeleteBCSave {
-		err := osspecifics.ClearFolder(BC.GetDBLocation())
-
-		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-			fmt.Printf("Could not delete BlockChain save and folder\n")
-			os.Exit(FailedDeleteBC)
-		}
-
-		bcSavePath := osspecifics.CreatePath(dir, "bcs.json")
-
-		err = os.Remove(bcSavePath)
-
-		if err != nil {
-			generalerrors.HandleError(err)
-			fmt.Printf("Error: Failed to remove the blockchain save\n")
-			os.Exit(FailedDeleteBC)
-		}
-
-		fmt.Printf("Successfully deleted blockchain save and folder!\n")
-		exitAfter = true
+	if err != nil {
+		generalerrors.HandleError(err)
+		os.Exit(FailedGetWallet)
 	}
 
 	if fv.DeleteWalletSave {
@@ -320,6 +401,7 @@ func Execute(fv *FlagValues) {
 
 		fmt.Printf("Successfully deleted Wallet save and Assets folder!\n")
 		exitAfter = true
+
 	}
 
 	if exitAfter {
@@ -333,33 +415,17 @@ func Execute(fv *FlagValues) {
 	fmt.Printf("Logged in successfully as: %s\n", Wallet.GetUsername())
 
 	//Perform actions based on Flag Values
+	retVal := performOperation(fv, Wallet, BC)
 
-	switch fv.Operation {
-	case "AddAsset":
-		args := getOpArgs(AddAsset)
-
-		if len(args) != 2 {
-			fmt.Printf("Error: Operation AddAsset did not receive the right amount of arguments\n")
-			os.Exit(WrongNumberOfArgsGivenToOp)
+	if retVal != Success {
+		if retVal == UnknownOperation {
+			fmt.Printf("Unknown operation: %s\n", fv.Operation)
 		}
+		os.Exit(retVal)
+	}
 
-		asset, err := Wallet.AddAsset(args[0], args[1])
-
-		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-			fmt.Printf("Failed to add asset: %s\n", args[0])
-			os.Exit(AddAssetFailed)
-		}
-
-		err = BC.AddData(Wallet.GetUsername(), Wallet.GetUsername(), asset)
-
-		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-			fmt.Printf("Failed to add asset: %s\n", asset.GetName())
-			os.Exit(AddAssetFailed)
-		}
-
-		fmt.Printf("Added Asset \"%s\" successfully!\n", asset.GetName())
+	if fv.Operation == "ViewAssets" {
+		os.Exit(Success)
 	}
 
 	//Export states

@@ -26,7 +26,7 @@ func CreateNewBlockchain(dbLoc string) (*BlockChain, error) {
 	err := ExportBlock(dbLoc, bc.mLastBlock)
 
 	if err != nil {
-		generalerrors.HandleError(err, &generalerrors.AllErrorsExit{ExitCode: 1})
+		return nil, err
 	}
 
 	return bc, nil
