@@ -1,0 +1,4 @@
+Create new wallet and bc = .\GoChain.exe -u matei -p matei -nb -db C:\Users\eusic\Desktop\LicentaHelp\Database -nw -dw C:\Users\eusic\Desktop\LicentaHelp\Assets
+Delete wallet and bc     = .\GoChain.exe -u matei -p matei -DW
+Add asset                = .\GoChain.exe -u matei -p matei -op AddAsset MateiA C:\Users\eusic\Pictures\index.jpg
+Remove asset             = .\GoChain.exe -u matei -p matei -op RemoveAsset MateiA
