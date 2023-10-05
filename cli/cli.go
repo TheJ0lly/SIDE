@@ -23,11 +23,9 @@ const (
 	AddAssetFailed
 	RemoveAssetFailed
 	WrongPass
-	FailedDeleteBC
 	FailedGetBC
 	FailedDeleteWallet
 	FailedGetWallet
-	ExitAfter
 	FailedToGetCWD
 	UnknownOperation
 )
@@ -302,7 +300,6 @@ func Execute(fv *FlagValues) {
 	var BC *blockchain.BlockChain
 
 	var Wallet *wallet.Wallet
-	var exitAfter = false
 
 	dir, err := os.Getwd()
 
@@ -318,6 +315,7 @@ func Execute(fv *FlagValues) {
 		generalerrors.HandleError(err)
 		os.Exit(FailedGetBC)
 	}
+
 	//Wallet handling
 	Wallet, err = getWallet(fv)
 
@@ -345,7 +343,7 @@ func Execute(fv *FlagValues) {
 		if err != nil {
 			log.Printf("Error: %s\n", err.Error())
 			log.Printf("Could not delete Wallet save and Assets folder\n")
-			os.Exit(FailedDeleteBC)
+			os.Exit(FailedDeleteWallet)
 		}
 
 		WalletSavePath := osspecifics.CreatePath(dir, Wallet.GetUsername())
@@ -355,16 +353,12 @@ func Execute(fv *FlagValues) {
 		if err != nil {
 			generalerrors.HandleError(err)
 			log.Printf("Error: Failed to remove the wallet save\n")
-			os.Exit(FailedDeleteBC)
+			os.Exit(FailedDeleteWallet)
 		}
 
 		log.Printf("Successfully deleted Wallet save and Assets folder!\n")
-		exitAfter = true
+		os.Exit(Success)
 
-	}
-
-	if exitAfter {
-		os.Exit(ExitAfter)
 	}
 
 	if !Wallet.ConfirmPassword(fv.Password) {
