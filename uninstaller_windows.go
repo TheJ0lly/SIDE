@@ -7,6 +7,7 @@ import (
 	"github.com/TheJ0lly/GoChain/wallet"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -26,18 +27,15 @@ func main() {
 		return
 	}
 
-	BC, err := blockchain.ImportChain()
+	BC, _ := blockchain.ImportChain()
 
-	if err != nil {
-		log.Printf("Error: %s\n", err.Error())
-		return
-	}
+	if BC != nil {
+		err = osspecifics.ClearFolder(BC.GetDBLocation())
 
-	err = osspecifics.ClearFolder(BC.GetDBLocation())
-
-	if err != nil {
-		log.Printf("Error: %s\n", err.Error())
-		return
+		if err != nil {
+			log.Printf("Error: %s\n", err.Error())
+			return
+		}
 	}
 
 	log.Printf("Deleting all wallets and their folder...\n")
@@ -78,6 +76,19 @@ func main() {
 		}
 	}
 
+	uninstallerPath := osspecifics.CreatePath(dir, "GoChain_Uninstaller.exe")
+	removeUninstaller := "/c start timeout /t 1 /NOBREAK > NUL && del " + uninstallerPath
+
+	s := exec.Command("cmd.exe", removeUninstaller)
+	s.Stdout = os.Stdout
+	s.Stdin = os.Stdin
+	s.Stderr = os.Stderr
+
+	err = s.Start()
+
+	if err != nil {
+		generalerrors.HandleError(err)
+	}
+
 	log.Printf("Uninstall successful\n")
-	log.Printf("For now you have to manually delete the uninstaller. Sorry for the inconvenience.\n")
 }

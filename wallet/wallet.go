@@ -72,7 +72,7 @@ func (w *Wallet) AddAsset(assetName string, fileLocation string) (*asset.Asset, 
 	var assetToAdd *asset.Asset
 	AssetPath := osspecifics.CreatePath(w.mDatabaseDir, assetName)
 
-	switch asset.DetermineAssetType(fileData) {
+	switch asset.DetermineType(fileData) {
 	case asset.JPEG:
 		assetToAdd = asset.CreateNewAsset(assetName, asset.JPEG, fileData)
 	case asset.PDF:
