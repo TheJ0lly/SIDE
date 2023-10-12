@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -26,7 +27,7 @@ const (
 	FailedGetBC
 	FailedDeleteWallet
 	FailedGetWallet
-	FailedToGetCWD
+	FailedToGetExeFolder
 	UnknownOperation
 )
 
@@ -302,12 +303,14 @@ func Execute(fv *FlagValues) {
 
 	var Wallet *wallet.Wallet
 
-	dir, err := os.Getwd()
+	exePath, err := os.Executable()
 
 	if err != nil {
 		log.Printf("Error: %s\n", err)
-		os.Exit(FailedToGetCWD)
+		os.Exit(FailedToGetExeFolder)
 	}
+
+	dir := filepath.Dir(exePath)
 
 	//Blockchain handling
 	BC, err = getBlockchain()

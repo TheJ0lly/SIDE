@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,27 +16,27 @@ func main() {
 
 	log.Printf("Uninstalling BlockChain!\n")
 
-	dir, err := os.Getwd()
+	exePath, err := os.Executable()
+
+	if err != nil {
+		log.Printf("Error: %s\n", err)
+		return
+	}
+
+	dir := filepath.Dir(exePath)
+
+	BC, err := blockchain.ImportChain()
 
 	if err != nil {
 		generalerrors.HandleError(err)
 		return
 	}
 
+	err = osspecifics.ClearFolder(BC.GetDBLocation())
+
 	if err != nil {
 		log.Printf("Error: %s\n", err.Error())
 		return
-	}
-
-	BC, _ := blockchain.ImportChain()
-
-	if BC != nil {
-		err = osspecifics.ClearFolder(BC.GetDBLocation())
-
-		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
-			return
-		}
 	}
 
 	log.Printf("Deleting all wallets and their folder...\n")

@@ -7,6 +7,7 @@ import (
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"log"
 	"os"
+	"path/filepath"
 	"slices"
 )
 
@@ -16,7 +17,14 @@ type blockchainIE struct {
 }
 
 func ImportChain() (*BlockChain, error) {
-	dir, err := os.Getwd()
+	exePath, err := os.Executable()
+
+	if err != nil {
+		log.Printf("Error: %s\n", err)
+		return nil, err
+	}
+
+	dir := filepath.Dir(exePath)
 
 	if err != nil {
 		return nil, err
@@ -70,11 +78,14 @@ func ImportChain() (*BlockChain, error) {
 }
 
 func (bc *BlockChain) ExportChain() error {
-	dir, err := os.Getwd()
+	exePath, err := os.Executable()
 
 	if err != nil {
+		log.Printf("Error: %s\n", err)
 		return err
 	}
+
+	dir := filepath.Dir(exePath)
 
 	log.Printf("Exporting BlockChain state...\n")
 	bcIE := blockchainIE{

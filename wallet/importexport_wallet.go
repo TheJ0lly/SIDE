@@ -9,6 +9,7 @@ import (
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type walletIE struct {
@@ -20,11 +21,14 @@ type walletIE struct {
 }
 
 func ImportWallet(username string) (*Wallet, error) {
-	dir, err := os.Getwd()
+	exePath, err := os.Executable()
 
 	if err != nil {
+		log.Printf("Error: %s\n", err)
 		return nil, err
 	}
+
+	dir := filepath.Dir(exePath)
 
 	path := osspecifics.CreatePath(dir, username)
 	allBytes, err := os.ReadFile(path)
@@ -77,11 +81,14 @@ func ImportWallet(username string) (*Wallet, error) {
 }
 
 func (w *Wallet) ExportWallet() error {
-	dir, err := os.Getwd()
+	exePath, err := os.Executable()
 
 	if err != nil {
+		log.Printf("Error: %s\n", err)
 		return err
 	}
+
+	dir := filepath.Dir(exePath)
 
 	log.Printf("Exporting Wallet state...\n")
 
