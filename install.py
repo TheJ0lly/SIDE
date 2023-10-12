@@ -10,17 +10,6 @@ if os_name == "Windows":
     os.system("go build -o bin\\GoChain_Uninstaller.exe uninstaller_windows.go")
     os.system("go build -o bin\\GoChain.exe main.go")
 
-
-elif os_name == "Linux":
-    os.system("go build -o bin/GoChain_Installer installer.go")
-    os.system("go build -o bin/GoChain_Uninstaller uninstaller_linux.go")
-    os.system("go build -o bin/GoChain main.go")
-
-elif os_name == "Darwin":
-    os.system("go build -o bin/GoChain_Installer installer.go")
-    os.system("go build -o bin/GoChain_Uninstaller uninstaller_ios.go")
-    os.system("go build -o bin/GoChain main.go")
-
 else:
     print(f"Unsupported OS: {os_name}\n")
     sys.exit(1)
