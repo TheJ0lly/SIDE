@@ -50,7 +50,7 @@ type FlagValues struct {
 
 // displayHelp - will be used when the help flag is called, or when user fails to comply to execution requirements.
 func displayHelp() {
-	log.Printf("Usage: <exec> (-u <string> & -p <string>) [ACTIONS]\n\n")
+	fmt.Printf("Usage: <exec> (-u <string> & -p <string>) [ACTIONS]\n\n")
 
 	fmt.Print("  -h          \n      Display help menu.\n")
 	fmt.Print("  -u <string> \n      Input the username of the wallet you want to log in.\n")
@@ -183,16 +183,17 @@ func getOpArgs(op OPERATION) []string {
 	case AddAsset:
 		operation = "AddAsset"
 		for i := 0; i < len(args); i++ {
-			if args[i] == operation {
+			if args[i] == operation && i < len(args)-2 {
 				opArgs = append(opArgs, args[i+1])
 				opArgs = append(opArgs, args[i+2])
 				break
 			}
 		}
+
 	case RemoveAsset:
 		operation = "RemoveAsset"
 		for i := 0; i < len(args); i++ {
-			if args[i] == operation {
+			if args[i] == operation && i < len(args)-1 {
 				opArgs = append(opArgs, args[i+1])
 				break
 			}
