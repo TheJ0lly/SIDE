@@ -1,27 +1,3 @@
 Mandatory:
-    -Add a CLI package to handle and beautify the CLI, of course :)
-
-    Research Hash Tree / Merkle Tree
-
-After-thought:    
-    -Add lookup for data - good for searching through whole blockchain, research how to do it, maybe do a 2-ended search using go-routines, one from start to middle, one from middle to end, let's see :)
-    
-    -Add way to add & remove & manage users to the network
-        -Research how to synchronize the database for new users.
-    
-    -Add new things required for a blockchain.
-
-    -Maybe smart-contracts? 
-
-After meeting 13.09.2023:
-    -change CLI to CLI with flags
-        -add flags for actions (Add assets, remove assets, etc.)
-
-    -hash trees/Merkle trees for block data storage   (ROOT Hash = Block hash)
-        -Redo storage of data                         (Intermediary hashes for transaction - Sender public key + Destination public key)?
-        -Redo hash function for blocks                (Leaf hash = IDHFT + Data)
-
-        
-    -Hyper Ledger?
-    -More research for bc
-    -New ideas to add?
+    1. Find a way to connect users, add users and remove users.
+    2. Traditional Database.

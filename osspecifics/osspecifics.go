@@ -28,7 +28,7 @@ func GetFileName(filepath string) string {
 	var filename []byte
 
 	for i := len(filepath) - 1; i >= 0; i-- {
-		if filepath[i] == '\\' {
+		if filepath[i] == PathSep[0] {
 			break
 		} else {
 			filename = slices.Insert(filename, 0, filepath[i])
