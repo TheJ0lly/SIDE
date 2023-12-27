@@ -29,17 +29,16 @@ func main() {
 
 	if err != nil {
 		generalerrors.HandleError(err)
-		return
+	} else {
+		err = osspecifics.ClearFolder(BC.GetDBLocation())
+
+		if err != nil {
+			log.Printf("Error: %s\n", err.Error())
+			return
+		}
+
+		log.Printf("Deleting all wallets and their folder...\n")
 	}
-
-	err = osspecifics.ClearFolder(BC.GetDBLocation())
-
-	if err != nil {
-		log.Printf("Error: %s\n", err.Error())
-		return
-	}
-
-	log.Printf("Deleting all wallets and their folder...\n")
 
 	files, err := os.ReadDir(dir)
 

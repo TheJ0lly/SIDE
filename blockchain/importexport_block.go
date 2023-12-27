@@ -12,6 +12,10 @@ import (
 	"strconv"
 )
 
+const (
+	ASCIIToHexDifference = 55
+)
+
 type metadataIE struct {
 	Source      string `json:"source"`
 	Destination string `json:"destination"`
@@ -31,7 +35,7 @@ func getByteFromHex(first byte, second byte) byte {
 
 		final = byte(num) << 4
 	} else {
-		final = (first - 55) << 4
+		final = (first - ASCIIToHexDifference) << 4
 	}
 
 	if second >= '0' && second <= '9' {
@@ -39,7 +43,7 @@ func getByteFromHex(first byte, second byte) byte {
 
 		final = final | byte(num)
 	} else {
-		final = final | (second - 55)
+		final = final | (second - ASCIIToHexDifference)
 	}
 
 	return final
