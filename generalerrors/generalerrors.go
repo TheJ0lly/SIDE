@@ -102,6 +102,10 @@ type AssetDoesNotExist struct {
 	AssetName string
 }
 
+type UserNotFound struct {
+	UserName string
+}
+
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
@@ -196,7 +200,19 @@ func (ane *AssetDoesNotExist) Error() string {
 	return fmt.Sprintf("Asset does not exist: %s", ane.AssetName)
 }
 
+func (unf *UserNotFound) Error() string {
+	return fmt.Sprintf("No user \"%s\" has been found.", unf.UserName)
+}
+
 // ======== HANDLE ERROR FUNCTION ========
+
+type LogLevel int
+
+const (
+	ERROR LogLevel = iota
+	WARNING
+	INFO
+)
 
 // AllErrorsExit - This error means, that if any error has occurred, just exit with the ExitCode value.
 type AllErrorsExit struct {
@@ -210,8 +226,15 @@ func (aee *AllErrorsExit) Error() string {
 // HandleError - This function will print the errors given.
 // If you want to exit on a specific error, just add it after the initial error, and if it matches, the program will exit with 1.
 // If you want to exit on all errors, doesn't matter which specific one, just use AllErrorsExit, and pass the error code you want to exit with.
-func HandleError(err error, errorsToFail ...error) {
-	log.Printf("Error: %s\n", err.Error())
+func HandleError(loglevel LogLevel, err error, errorsToFail ...error) {
+	switch loglevel {
+	case ERROR:
+		log.Printf("ERROR: %s\n", err.Error())
+	case WARNING:
+		log.Printf("WARNING: %s\n", err.Error())
+	case INFO:
+		log.Printf("INFO: %s\n", err.Error())
+	}
 
 	if len(errorsToFail) != 0 {
 		var aee *AllErrorsExit

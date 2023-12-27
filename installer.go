@@ -30,7 +30,7 @@ func main() {
 		err := osspecifics.ClearFolder(*Database)
 
 		if err != nil {
-			generalerrors.HandleError(err)
+			generalerrors.HandleError(generalerrors.ERROR, err)
 			return
 		}
 	}
@@ -51,7 +51,7 @@ func main() {
 	BC, err := blockchain.CreateNewBlockchain(*Database)
 
 	if err != nil {
-		generalerrors.HandleError(err)
+		generalerrors.HandleError(generalerrors.ERROR, err)
 		return
 	}
 	log.Printf("BlockChain intialized!\n\n")
@@ -60,7 +60,7 @@ func main() {
 	err = BC.ExportChain()
 
 	if err != nil {
-		generalerrors.HandleError(err)
+		generalerrors.HandleError(generalerrors.ERROR, err)
 		return
 	}
 

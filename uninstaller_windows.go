@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 func main() {
@@ -28,13 +27,12 @@ func main() {
 	BC, err := blockchain.ImportChain()
 
 	if err != nil {
-		generalerrors.HandleError(err)
+		generalerrors.HandleError(generalerrors.INFO, err)
 	} else {
 		err = osspecifics.ClearFolder(BC.GetDBLocation())
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
-			return
+			generalerrors.HandleError(generalerrors.ERROR, err, err)
 		}
 
 		log.Printf("Deleting all wallets and their folder...\n")
@@ -43,18 +41,19 @@ func main() {
 	files, err := os.ReadDir(dir)
 
 	for _, f := range files {
-		if f.Name() != "bcs.json" && !strings.Contains(f.Name(), ".exe") {
+		if !osspecifics.IsExecutable(f.Name()) && f.Name() != "bcs.json" {
 			Wallet, err := wallet.ImportWallet(f.Name())
 
 			if err != nil {
-				generalerrors.HandleError(err)
+				generalerrors.HandleError(generalerrors.WARNING, err)
 				continue
 			}
 
+			log.Printf("Clearing wallet folder...\n")
 			err = osspecifics.ClearFolder(Wallet.GetDBLocation())
 
 			if err != nil {
-				generalerrors.HandleError(err)
+				generalerrors.HandleError(generalerrors.WARNING, err)
 				continue
 			}
 
@@ -63,15 +62,14 @@ func main() {
 			err = os.Remove(WalletSavePath)
 
 			if err != nil {
-				generalerrors.HandleError(err)
-				log.Printf("Error: Failed to remove the wallet save\n")
+				generalerrors.HandleError(generalerrors.WARNING, err)
 				continue
 			}
 		} else if f.Name() != "GoChain_Uninstaller.exe" {
 			err = os.Remove(osspecifics.CreatePath(dir, f.Name()))
 
 			if err != nil {
-				generalerrors.HandleError(err)
+				generalerrors.HandleError(generalerrors.WARNING, err)
 			}
 		}
 	}
@@ -87,7 +85,7 @@ func main() {
 	err = s.Start()
 
 	if err != nil {
-		generalerrors.HandleError(err)
+		generalerrors.HandleError(generalerrors.ERROR, err)
 	}
 
 	log.Printf("Uninstall successful\n")

@@ -164,13 +164,13 @@ func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) {
 	err := BC.ExportChain()
 
 	if err != nil {
-		generalerrors.HandleError(err, err)
+		generalerrors.HandleError(generalerrors.ERROR, err, err)
 	}
 
 	err = Wallet.ExportWallet()
 
 	if err != nil {
-		generalerrors.HandleError(err, err)
+		generalerrors.HandleError(generalerrors.ERROR, err, err)
 	}
 }
 
@@ -316,7 +316,7 @@ func Execute(fv *FlagValues) {
 	BC, err = getBlockchain()
 
 	if err != nil {
-		generalerrors.HandleError(err)
+		generalerrors.HandleError(generalerrors.ERROR, err)
 		os.Exit(FailedGetBC)
 	}
 
@@ -324,7 +324,7 @@ func Execute(fv *FlagValues) {
 	Wallet, err = getWallet(fv)
 
 	if err != nil {
-		generalerrors.HandleError(err)
+		generalerrors.HandleError(generalerrors.ERROR, err)
 		os.Exit(FailedGetWallet)
 	}
 
@@ -333,7 +333,7 @@ func Execute(fv *FlagValues) {
 		files, err := os.ReadDir(dir)
 
 		if err != nil {
-			generalerrors.HandleError(err)
+			generalerrors.HandleError(generalerrors.ERROR, err)
 			os.Exit(FailedDeleteWallet)
 		}
 
@@ -355,7 +355,7 @@ func Execute(fv *FlagValues) {
 		err = os.Remove(WalletSavePath)
 
 		if err != nil {
-			generalerrors.HandleError(err)
+			generalerrors.HandleError(generalerrors.ERROR, err)
 			log.Printf("Error: Failed to remove the wallet save\n")
 			os.Exit(FailedDeleteWallet)
 		}

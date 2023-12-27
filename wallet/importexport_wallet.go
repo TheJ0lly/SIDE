@@ -3,7 +3,6 @@ package wallet
 import (
 	"crypto/rsa"
 	"encoding/json"
-	"errors"
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
@@ -34,8 +33,7 @@ func ImportWallet(username string) (*Wallet, error) {
 	allBytes, err := os.ReadFile(path)
 
 	if err != nil {
-		//return nil, &generalerrors.ReadFileFailed{File: path}
-		return nil, errors.New("No user \"" + username + "\" has been found.")
+		return nil, &generalerrors.UserNotFound{UserName: username}
 	}
 
 	var wie walletIE
