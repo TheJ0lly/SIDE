@@ -2,16 +2,16 @@ import platform
 import os
 import sys
 
-IsGoPresent = os.getenv("GOPATH")
-
-if IsGoPresent is None:
-    print("Go toolchain is not installed!\nPlease install the Go toolchain to proceed!\n")
-    sys.exit(1)
-
 os_name = platform.system()
 
 # Building the GoChain main exe and the GoChain_Install & GoChainUninstall
 if os_name == "Windows":
+    IsGoPresent = os.getenv("GOPATH")
+
+    if IsGoPresent is None:
+        print("Go toolchain is not installed!\nPlease install the Go toolchain to proceed!\n")
+        sys.exit(1)
+
     location = None
     if len(sys.argv) != 2:
         print("No folder has been passed as argument...")
@@ -27,7 +27,11 @@ if os_name == "Windows":
         location = sys.argv[1]
 
     print("Installing GoChain_Installer...")
-    os.system(f"go build -o {location}\\GoChain_Installer.exe installer.go")
+    err = os.system(f"go build -o {location}\\GoChain_Installer.exe installer.go")
+
+    if err == 127:
+        print("Go toolchain not installed on this machine! Consider installing the Go toolchain before installing!")
+        sys.exit(2)
 
     print("Installing GoChain_Uninstaller...")
     os.system(f"go build -o {location}\\GoChain_Uninstaller.exe uninstaller_windows.go")
