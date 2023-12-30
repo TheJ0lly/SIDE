@@ -7,8 +7,8 @@ import (
 	"github.com/TheJ0lly/GoChain/wallet"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 func main() {
@@ -65,7 +65,7 @@ func main() {
 				generalerrors.HandleError(generalerrors.WARNING, err)
 				continue
 			}
-		} else if f.Name() != "GoChain_Uninstaller.exe" {
+		} else if !strings.Contains(f.Name(), "GoChain_Uninstaller") {
 			err = os.Remove(osspecifics.CreatePath(dir, f.Name()))
 
 			if err != nil {
@@ -74,15 +74,7 @@ func main() {
 		}
 	}
 
-	uninstallerPath := osspecifics.CreatePath(dir, "GoChain_Uninstaller.exe")
-	removeUninstaller := "/c start timeout /t 1 /NOBREAK > NUL && del " + uninstallerPath
-
-	s := exec.Command("cmd.exe", removeUninstaller)
-	s.Stdout = os.Stdout
-	s.Stdin = os.Stdin
-	s.Stderr = os.Stderr
-
-	err = s.Start()
+	err = osspecifics.RemoveUninstaller(dir)
 
 	if err != nil {
 		generalerrors.HandleError(generalerrors.ERROR, err)

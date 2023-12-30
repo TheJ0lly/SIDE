@@ -36,6 +36,6 @@ else:
 
 print("\nSuccessfully installed GoChain.")
 print("First use \"GoChain_Installer\" to ensure a correct functionality of the GoChain.")
-print("To uninstall use \"GoChain_Uninstall\".")
+print("To uninstall use \"GoChain_Uninstaller\".")
 print("First use \"GoChain -h\" to see what is available after using \"GoChain_Installer\".")
 print("\nTODO: PUT THE FOLDER IN THE ENVIRONMENT VARIABLES TO USE THE EXECUTABLES GLOBALLY")

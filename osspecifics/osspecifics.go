@@ -4,12 +4,21 @@ import (
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"log"
 	"os"
+	"os/exec"
 	"runtime"
 	"slices"
 	"strings"
 )
 
 var PathSep string
+
+func init() {
+	if runtime.GOOS == "windows" {
+		PathSep = "\\"
+	} else {
+		PathSep = "/"
+	}
+}
 
 func CreatePath(format ...string) string {
 	var stringToReturn string
@@ -72,5 +81,24 @@ func IsExecutable(filepath string) bool {
 		}
 		//Check permission bits to tell if a file is executable for any
 		return fi.Mode()&0111 != 0
+	}
+}
+
+func RemoveUninstaller(dir string) error {
+	if runtime.GOOS == "windows" {
+		uninstallerPath := CreatePath(dir, "GoChain_Uninstaller.exe")
+		removeUninstaller := "/c start timeout /t 1 /NOBREAK > NUL && del " + uninstallerPath
+
+		s := exec.Command("cmd.exe", removeUninstaller)
+		s.Stdout = os.Stdout
+		s.Stdin = os.Stdin
+		s.Stderr = os.Stderr
+
+		if err := s.Start(); err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return nil
 	}
 }
