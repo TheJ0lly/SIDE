@@ -100,9 +100,9 @@ func RemoveUninstaller(dir string) error {
 		return nil
 	} else {
 		uninstallerPath := CreatePath(dir, "GoChain_Uninstaller")
-		removeUninstaller := "-c 'sleep 1 && rm " + uninstallerPath + "'"
+		removeUninstaller := " sleep 1 && rm " + uninstallerPath
 
-		s := exec.Command("bash", removeUninstaller)
+		s := exec.Command("bash", "-c", removeUninstaller)
 		s.Stdout = os.Stdout
 		s.Stdin = os.Stdin
 		s.Stderr = os.Stderr

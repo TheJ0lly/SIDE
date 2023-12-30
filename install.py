@@ -49,17 +49,17 @@ else:
         location = sys.argv[1]
 
     print("Installing GoChain_Installer...")
-    err = os.system(f"go build -o {location}/GoChain_Installer.exe installer.go")
+    err = os.system(f"go build -o {location}/GoChain_Installer installer.go")
 
     if err != 0:
         print("Go toolchain not installed on this machine! Consider installing the Go toolchain before installing!")
         sys.exit(2)
 
     print("Installing GoChain_Uninstaller...")
-    os.system(f"go build -o {location}/GoChain_Uninstaller.exe uninstaller.go")
+    os.system(f"go build -o {location}/GoChain_Uninstaller uninstaller.go")
 
     print("Installing GoChain...")
-    os.system(f"go build -o {location}/GoChain.exe main.go")
+    os.system(f"go build -o {location}/GoChain main.go")
 
 
 print("\nSuccessfully installed GoChain.")
