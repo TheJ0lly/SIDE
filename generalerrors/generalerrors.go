@@ -124,7 +124,7 @@ func (rdf *ReadDirFailed) Error() string {
 
 func (rff *ReadFileFailed) Error() string {
 	if strings.Contains(rff.File, "bcs.json") {
-		return "There is no save file of the blockchain!\n"
+		return "There is no save file of the blockchain!"
 	} else if strings.Contains(rff.File, "ws.json") {
 		return "There is no save file of the wallet!"
 	}
