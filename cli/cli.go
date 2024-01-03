@@ -55,10 +55,9 @@ func displayHelp() {
 	fmt.Print("  -h          \n      Display help menu.\n")
 	fmt.Print("  -u <string> \n      Input the username of the wallet you want to log in.\n")
 	fmt.Print("  -p <string> \n      Input the password of the wallet you want to log in.\n")
-	fmt.Print("  -nw         \n      Creates a new instance of a wallet.\n")
-	fmt.Print("  -dw <string>\n      Input the location of the database of the wallet. Effective only if `nw` flag is used.\n")
-	fmt.Print("  -DW <string>\n      Delete the wallet of an user.\n")
-	fmt.Print("  -op <string>\n      Input the name of the operation you want to perform:\n")
+	fmt.Print("  -n          \n      Creates a new instance of a wallet.\n")
+	fmt.Print("  -d          \n      Delete the wallet of an user.\n")
+	fmt.Print("  -a <string> \n      Input the name of the action you want to perform:\n")
 	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
@@ -68,9 +67,9 @@ func InitFlags() *FlagValues {
 	H := flag.Bool("h", false, "")
 	U := flag.String("u", NoValuePassed, "")
 	P := flag.String("p", NoValuePassed, "")
-	NewWallet := flag.String("nw", NoValuePassed, "")
-	Operation := flag.String("op", NoValuePassed, "")
-	DeleteWalletSave := flag.Bool("DW", false, "")
+	NewWallet := flag.String("n", NoValuePassed, "")
+	Operation := flag.String("a", NoValuePassed, "")
+	DeleteWalletSave := flag.Bool("d", false, "")
 
 	flag.Usage = displayHelp
 
@@ -120,6 +119,8 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 		if walletExists(fv.Username) {
 			return nil, errors.New(fmt.Sprintf("The user %s already exists!", fv.Username))
 		}
+
+		fv.NewWallet = osspecifics.GetFullPathFromArg(fv.NewWallet)
 
 		files, err = os.ReadDir(fv.NewWallet)
 
@@ -308,17 +309,8 @@ func Execute(fv *FlagValues) {
 
 	var Wallet *wallet.Wallet
 
-	exePath, err := os.Executable()
-
-	if err != nil {
-		log.Printf("Error: %s\n", err)
-		os.Exit(FailedToGetExeFolder)
-	}
-
-	dir := filepath.Dir(exePath)
-
 	//Blockchain handling
-	BC, err = getBlockchain()
+	BC, err := getBlockchain()
 
 	if err != nil {
 		generalerrors.HandleError(generalerrors.ERROR, err)
@@ -338,6 +330,15 @@ func Execute(fv *FlagValues) {
 			log.Printf("Error: Username \"%s\" does not exist!\n", Wallet.GetUsername())
 			os.Exit(FailedDeleteWallet)
 		}
+
+		exePath, err := os.Executable()
+
+		if err != nil {
+			log.Printf("Error: %s\n", err)
+			os.Exit(FailedToGetExeFolder)
+		}
+
+		dir := filepath.Dir(exePath)
 
 		err = osspecifics.ClearFolder(Wallet.GetDBLocation())
 

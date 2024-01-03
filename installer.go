@@ -11,23 +11,26 @@ import (
 )
 
 func InstallerHelp() {
-	fmt.Printf("Usage: <exec> -db <string>\n")
+	fmt.Printf("Usage: <exec> -d <string>\n")
 	fmt.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
 }
 
 func main() {
-	Database := flag.String("db", "", "")
+	Database := flag.String("d", "", "")
 	ClearFolder := flag.Bool("n", false, "")
 	flag.Usage = InstallerHelp
 
 	flag.Parse()
 
 	if *Database == "" {
-		log.Printf("Error: Blockchain Database is empty. Set the value with \"db\".")
+		log.Printf("Error: No directory to install into. Set the value with \"d\".")
 		return
 	}
 
+	*Database = osspecifics.GetFullPathFromArg(*Database)
+
 	if *ClearFolder {
+		log.Printf("Clearing selected folder...\n")
 		err := osspecifics.ClearFolder(*Database)
 
 		if err != nil {
@@ -44,7 +47,7 @@ func main() {
 	}
 
 	if len(files) > 0 {
-		log.Printf("Error: Folder already contains some files!\n To delete the file use the flag: -n\n")
+		log.Printf("Error: Folder already contains some files!\n To clear the folder use the flag: -n\n")
 		return
 	}
 

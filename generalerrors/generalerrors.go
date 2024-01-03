@@ -61,10 +61,6 @@ type BlockMissing struct {
 	BlockHash string
 }
 
-type BlockchainDBHasItems struct {
-	Dir string
-}
-
 type WalletDBHasItems struct {
 	Dir string
 }
@@ -159,12 +155,8 @@ func (bm *BlockMissing) Error() string {
 	return fmt.Sprintf("There is no block with the hash: %s!", bm.BlockHash)
 }
 
-func (bc *BlockchainDBHasItems) Error() string {
-	return fmt.Sprintf("Folder used for Blockchain contains files! Directory: %s", bc.Dir)
-}
-
 func (w *WalletDBHasItems) Error() string {
-	return fmt.Sprintf("Folder used for Wallet Assets contains files! Directory: %s", w.Dir)
+	return fmt.Sprintf("Folder selected for storing wallet assets contains files! Directory: %s", w.Dir)
 }
 
 func (bhd *BlockHashDifferent) Error() string {

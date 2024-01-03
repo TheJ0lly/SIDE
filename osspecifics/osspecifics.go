@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
@@ -112,4 +113,14 @@ func RemoveUninstaller(dir string) error {
 		}
 		return nil
 	}
+}
+
+func GetFullPathFromArg(pathArg string) string {
+	fullpath, err := filepath.Abs(pathArg)
+
+	if err != nil {
+		log.Fatalf("ERROR: %s\n", err)
+	}
+
+	return fullpath
 }
