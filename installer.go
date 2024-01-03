@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
@@ -10,8 +11,8 @@ import (
 )
 
 func InstallerHelp() {
-	log.Printf("Usage: <exec> -db <string>\n")
-	log.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
+	fmt.Printf("Usage: <exec> -db <string>\n")
+	fmt.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
 }
 
 func main() {
@@ -56,7 +57,6 @@ func main() {
 	}
 	log.Printf("BlockChain intialized!\n\n")
 
-	log.Printf("Exporting BlockChain...\n")
 	err = BC.ExportChain()
 
 	if err != nil {
@@ -64,7 +64,6 @@ func main() {
 		return
 	}
 
-	log.Printf("BlockChain exported!\n")
 	log.Printf("GoChain executable ready to use!\n")
 
 }

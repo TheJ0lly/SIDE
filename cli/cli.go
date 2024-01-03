@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
@@ -19,7 +20,6 @@ const (
 	Success       = iota
 	HelpCalled
 	NoPassOrUser
-	CreateNewWalletNoDBGiven
 	WrongNumberOfArgsGivenToOp
 	AddAssetFailed
 	RemoveAssetFailed
@@ -42,8 +42,7 @@ const (
 type FlagValues struct {
 	Username         string
 	Password         string
-	NewWallet        bool
-	WalletDir        string
+	NewWallet        string
 	Operation        string
 	DeleteBCSave     bool
 	DeleteWalletSave bool
@@ -69,8 +68,7 @@ func InitFlags() *FlagValues {
 	H := flag.Bool("h", false, "")
 	U := flag.String("u", NoValuePassed, "")
 	P := flag.String("p", NoValuePassed, "")
-	NewWallet := flag.Bool("nw", false, "")
-	DbWallet := flag.String("dw", NoValuePassed, "")
+	NewWallet := flag.String("nw", NoValuePassed, "")
 	Operation := flag.String("op", NoValuePassed, "")
 	DeleteWalletSave := flag.Bool("DW", false, "")
 
@@ -88,22 +86,10 @@ func InitFlags() *FlagValues {
 		os.Exit(NoPassOrUser)
 	}
 
-	if *DbWallet != NoValuePassed {
-		if *NewWallet == false {
-			fmt.Print("Warning: flag 'dw' is ineffective.\n")
-		}
-	} else {
-		if *NewWallet {
-			fmt.Print("Error: Cannot create a new Wallet without a folder for the database!\n\n")
-			os.Exit(CreateNewWalletNoDBGiven)
-		}
-	}
-
 	return &FlagValues{
 		Username:         *U,
 		Password:         *P,
 		NewWallet:        *NewWallet,
-		WalletDir:        *DbWallet,
 		Operation:        *Operation,
 		DeleteWalletSave: *DeleteWalletSave,
 	}
@@ -129,18 +115,23 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 	var err error
 	var files []fs.DirEntry
 
-	if fv.NewWallet { // Create new wallet
-		files, err = os.ReadDir(fv.WalletDir)
+	if fv.NewWallet != NoValuePassed { // Create new wallet
+
+		if walletExists(fv.Username) {
+			return nil, errors.New(fmt.Sprintf("The user %s already exists!", fv.Username))
+		}
+
+		files, err = os.ReadDir(fv.NewWallet)
 
 		if err != nil {
-			return nil, &generalerrors.ReadDirFailed{Dir: fv.WalletDir}
+			return nil, &generalerrors.ReadDirFailed{Dir: fv.NewWallet}
 		}
 
 		if len(files) > 0 {
-			return nil, &generalerrors.WalletDBHasItems{Dir: fv.WalletDir}
+			return nil, &generalerrors.WalletDBHasItems{Dir: fv.NewWallet}
 		}
 
-		Wallet, err = wallet.CreateNewWallet(fv.Username, fv.Password, fv.WalletDir)
+		Wallet, err = wallet.CreateNewWallet(fv.Username, fv.Password, fv.NewWallet)
 
 		if err != nil {
 			return nil, err
@@ -206,7 +197,21 @@ func getOpArgs(op OPERATION) []string {
 	return opArgs
 }
 
-func walletExists(username string, files []fs.DirEntry) bool {
+func walletExists(username string) bool {
+
+	exePath, err := os.Executable()
+
+	if err != nil {
+		log.Fatalf("ERROR: %s\n", err)
+	}
+	exeDir := filepath.Dir(exePath)
+
+	files, err := os.ReadDir(exeDir)
+
+	if err != nil {
+		log.Fatalf("ERROR: %s\n", err)
+	}
+
 	for _, f := range files {
 		if strings.Contains(f.Name(), username) {
 			return true
@@ -329,15 +334,7 @@ func Execute(fv *FlagValues) {
 	}
 
 	if fv.DeleteWalletSave {
-
-		files, err := os.ReadDir(dir)
-
-		if err != nil {
-			generalerrors.HandleError(generalerrors.ERROR, err)
-			os.Exit(FailedDeleteWallet)
-		}
-
-		if !walletExists(Wallet.GetUsername(), files) {
+		if !walletExists(Wallet.GetUsername()) {
 			log.Printf("Error: Username \"%s\" does not exist!\n", Wallet.GetUsername())
 			os.Exit(FailedDeleteWallet)
 		}
@@ -360,7 +357,7 @@ func Execute(fv *FlagValues) {
 			os.Exit(FailedDeleteWallet)
 		}
 
-		log.Printf("Successfully deleted Wallet save and Assets folder!\n")
+		log.Printf("Successfully deleted wallet save and and cleared the assets folder!\n")
 		os.Exit(Success)
 
 	}

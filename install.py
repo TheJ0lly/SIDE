@@ -34,7 +34,7 @@ if os_name == "Windows":
         sys.exit(2)
 
     print("Installing GoChain_Uninstaller...")
-    os.system(f"go build -o {location}\\GoChain_Uninstaller.exe uninstaller_windows.go")
+    os.system(f"go build -o {location}\\GoChain_Uninstaller.exe uninstaller.go")
 
     print("Installing GoChain...")
     os.system(f"go build -o {location}\\GoChain.exe main.go")
