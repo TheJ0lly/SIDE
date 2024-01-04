@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
-	"github.com/multiformats/go-multiaddr"
+	"github.com/libp2p/go-libp2p/core"
 	"os"
 	"path/filepath"
 
@@ -27,7 +27,7 @@ type Wallet struct {
 	mPrivateKey  rsa.PrivateKey
 	mDatabaseDir string
 	mAssets      []*asset.Asset
-	mAddresses   []multiaddr.Multiaddr
+	mHost        core.Host
 }
 
 // CreateNewWallet - This function will create a wallet.
@@ -42,7 +42,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 		return nil, err
 	}
 
-	addrs, err := network.CreateNewNode(network.CreateNodeOptions(IP4, IP6, Addresses...))
+	host, err := network.CreateNewNode(network.CreateNodeOptions(IP4, IP6, Addresses...))
 
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 
 	passBytes := sha256.Sum256([]byte(password))
 
-	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: *privateKey, mPublicKey: privateKey.PublicKey, mAssets: nil, mDatabaseDir: dbLoc, mAddresses: addrs}
+	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: *privateKey, mPublicKey: privateKey.PublicKey, mAssets: nil, mDatabaseDir: dbLoc, mHost: host}
 
 	return w, nil
 }

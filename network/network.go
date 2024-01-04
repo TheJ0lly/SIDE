@@ -3,7 +3,7 @@ package network
 import (
 	"errors"
 	"github.com/libp2p/go-libp2p"
-	"github.com/multiformats/go-multiaddr"
+	"github.com/libp2p/go-libp2p/core"
 	"log"
 )
 
@@ -38,7 +38,7 @@ func getDefaultAddresses(Opt Options) []string {
 	return addrs
 }
 
-func CreateNewNode(Opt Options) ([]multiaddr.Multiaddr, error) {
+func CreateNewNode(Opt Options) (core.Host, error) {
 	defAddrs := getDefaultAddresses(Opt)
 
 	if len(Opt.addrs) == 0 {
@@ -66,5 +66,5 @@ func CreateNewNode(Opt Options) ([]multiaddr.Multiaddr, error) {
 	log.Printf("Initializing node with the following addresses: %v\n", host.Addrs())
 
 	log.Printf("Node has been initialized!\n")
-	return host.Addrs(), nil
+	return host, nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"github.com/libp2p/go-libp2p"
 	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
@@ -80,6 +81,16 @@ func ImportWallet(username string) (*Wallet, error) {
 		MASlice = append(MASlice, ma)
 	}
 
+	log.Printf("Starting node...\n")
+	host, err := libp2p.New(
+		libp2p.ListenAddrStrings(wie.Addresses...),
+	)
+
+	if err != nil {
+		log.Printf("Node could not start.\n")
+		return nil, err
+	}
+
 	w := &Wallet{
 		mUsername:    wie.Username,
 		mPassword:    wie.Password,
@@ -87,9 +98,9 @@ func ImportWallet(username string) (*Wallet, error) {
 		mPrivateKey:  wie.PrivateKey,
 		mDatabaseDir: wie.DatabaseDir,
 		mAssets:      assetSlice,
-		mAddresses:   MASlice,
+		mHost:        host,
 	}
-
+	log.Printf("Node successfully started, listening: %v\n", w.mHost.Addrs())
 	return w, nil
 }
 
@@ -113,7 +124,7 @@ func (w *Wallet) ExportWallet() error {
 
 	var MAString []string
 
-	for _, a := range w.mAddresses {
+	for _, a := range w.mHost.Addrs() {
 		MAString = append(MAString, a.String())
 	}
 
