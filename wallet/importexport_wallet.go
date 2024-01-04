@@ -6,6 +6,7 @@ import (
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +18,7 @@ type walletIE struct {
 	PrivateKey  rsa.PrivateKey `json:"PrivateKey"`
 	DatabaseDir string         `json:"DatabaseDir"`
 	Assets      []string       `json:"Assets"`
+	Addresses   []string       `json:"Addresses"`
 }
 
 func ImportWallet(username string) (*Wallet, error) {
@@ -41,7 +43,7 @@ func ImportWallet(username string) (*Wallet, error) {
 	err = json.Unmarshal(allBytes, &wie)
 
 	if err != nil {
-		return nil, &generalerrors.JSONUnMarshalFailed{Object: "Wallet"}
+		return nil, err
 	}
 
 	var assetSlice []*asset.Asset
@@ -66,6 +68,18 @@ func ImportWallet(username string) (*Wallet, error) {
 		assetSlice = append(assetSlice, newAsset)
 	}
 
+	var MASlice []multiaddr.Multiaddr
+
+	for _, a := range wie.Addresses {
+		ma, err := multiaddr.NewMultiaddr(a)
+
+		if err != nil {
+			return nil, err
+		}
+
+		MASlice = append(MASlice, ma)
+	}
+
 	w := &Wallet{
 		mUsername:    wie.Username,
 		mPassword:    wie.Password,
@@ -73,6 +87,7 @@ func ImportWallet(username string) (*Wallet, error) {
 		mPrivateKey:  wie.PrivateKey,
 		mDatabaseDir: wie.DatabaseDir,
 		mAssets:      assetSlice,
+		mAddresses:   MASlice,
 	}
 
 	return w, nil
@@ -96,18 +111,25 @@ func (w *Wallet) ExportWallet() error {
 		walletAssets = append(walletAssets, a.GetName())
 	}
 
+	var MAString []string
+
+	for _, a := range w.mAddresses {
+		MAString = append(MAString, a.String())
+	}
+
 	wie := walletIE{
 		Username:    w.mUsername,
 		Password:    w.mPassword,
 		PrivateKey:  w.mPrivateKey,
 		DatabaseDir: w.mDatabaseDir,
 		Assets:      walletAssets,
+		Addresses:   MAString,
 	}
 
 	bytesToWrite, err := json.MarshalIndent(wie, "", "    ")
 
 	if err != nil {
-		return &generalerrors.JSONMarshalFailed{Object: "Wallet"}
+		return err
 	}
 
 	path := osspecifics.CreatePath(dir, wie.Username)
