@@ -42,7 +42,7 @@ func ImportChain() (*BlockChain, error) {
 	err = json.Unmarshal(allBytes, &bcIE)
 
 	if err != nil {
-		return nil, &generalerrors.JSONUnMarshalFailed{Object: "BlockChain"}
+		return nil, err
 	}
 
 	bc := &BlockChain{
@@ -96,7 +96,7 @@ func (bc *BlockChain) ExportChain() error {
 	bytesToWrite, err := json.MarshalIndent(bcIE, "", "    ")
 
 	if err != nil {
-		return &generalerrors.JSONMarshalFailed{Object: "BlockChain"}
+		return err
 	}
 	path := osspecifics.CreatePath(dir, "bcs.json")
 

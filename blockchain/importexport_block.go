@@ -86,7 +86,7 @@ func ImportBlock(location string) (*Block, error) {
 	err = json.Unmarshal(allBytes, &bie)
 
 	if err != nil {
-		return nil, &generalerrors.JSONUnMarshalFailed{Object: "Block"}
+		return nil, err
 	}
 
 	//Recreating the current hash
@@ -151,7 +151,7 @@ func ExportBlock(folderLocation string, b *Block) error {
 	bytesToWrite, err := json.MarshalIndent(bie, "", "    ")
 
 	if err != nil {
-		return &generalerrors.JSONMarshalFailed{Object: "Block"}
+		return err
 	}
 
 	path := osspecifics.CreatePath(folderLocation, currHashStr)

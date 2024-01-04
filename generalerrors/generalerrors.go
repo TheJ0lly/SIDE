@@ -23,16 +23,6 @@ type ReadFileFailed struct {
 	File string
 }
 
-// JSONMarshalFailed - This error means that a json.Marshal has failed.
-type JSONMarshalFailed struct {
-	Object string
-}
-
-// JSONUnMarshalFailed This error means that a json.Unmarshal has failed.
-type JSONUnMarshalFailed struct {
-	Object string
-}
-
 // RemoveFileFailed -This error means that a call to os.Remove has failed.
 type RemoveFileFailed struct {
 	File string
@@ -125,14 +115,6 @@ func (rff *ReadFileFailed) Error() string {
 		return "There is no save file of the wallet!"
 	}
 	return fmt.Sprintf("Failed to read file: %s", rff.File)
-}
-
-func (jmf *JSONMarshalFailed) Error() string {
-	return fmt.Sprintf("Failed to marshal object of type: %s", jmf.Object)
-}
-
-func (jumf *JSONUnMarshalFailed) Error() string {
-	return fmt.Sprintf("Failed to unmarshal object of type: %s", jumf.Object)
 }
 
 func (rff *RemoveFileFailed) Error() string {
