@@ -60,6 +60,10 @@ func (a *Asset) GetAssetCopy() Asset {
 	}
 }
 
+func (a *Asset) GetAssetBytes() []byte {
+	return a.mData
+}
+
 func (a *Asset) PrintInfo() {
 	var Type string
 

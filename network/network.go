@@ -1,9 +1,14 @@
 package network
 
 import (
+	"context"
 	"errors"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/peerstore"
+	"github.com/multiformats/go-multiaddr"
 	"log"
 )
 
@@ -67,4 +72,29 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 
 	log.Printf("Node has been initialized!\n")
 	return host, nil
+}
+
+func SendTo(from host.Host, data []byte, to multiaddr.Multiaddr) error {
+	toInfo, err := peer.AddrInfoFromP2pAddr(to)
+
+	if err != nil {
+		return err
+	}
+	from.Peerstore().AddAddrs(toInfo.ID, toInfo.Addrs, peerstore.TempAddrTTL)
+	s, err := from.NewStream(context.Background(), toInfo.ID, "TRANSFER")
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending data...\n")
+	n, err := s.Write(data)
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sent %d bytes over to: %v\n", n, to)
+
+	return nil
 }

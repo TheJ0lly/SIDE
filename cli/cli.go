@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
+	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
+	"github.com/multiformats/go-multiaddr"
 	"io/fs"
 	"log"
 	"os"
@@ -23,6 +25,7 @@ const (
 	WrongNumberOfArgsGivenToOp
 	AddAssetFailed
 	RemoveAssetFailed
+	SendFailed
 	WrongPass
 	FailedGetBC
 	FailedDeleteWallet
@@ -37,6 +40,7 @@ const (
 	AddAsset OPERATION = iota
 	RemoveAsset
 	ViewAssets
+	Send
 )
 
 type FlagValues struct {
@@ -61,13 +65,14 @@ func displayHelp() {
 	fmt.Print("  -d             \n      Delete the wallet.\n")
 	fmt.Print("  -ip6           \n      Allow the auto-search for available IPv6 addresses when creating the wallet.\n")
 	fmt.Print("  -ip4           \n      Allow the auto-search for available IPv4 addresses when creating the wallet.\n")
-	fmt.Print("  -a  <string(s)>\n      Give the address(es) to listen to when creating a new wallet.\n" +
-		"      Example: (/ip4/192.168.1.1/tcp/8080)\n" +
-		"      Use address 192.168.1.1(IPv4) on port 8080 to handle a TCP connection\n")
+	fmt.Print("  -a  <string(s)>\n      Give the address(es) to listen to when creating a new wallet.\n")
+	fmt.Print("        Example: (/ip4/192.168.1.1/tcp/8080)\n")
+	fmt.Print("        Use address 192.168.1.1(IPv4) on port 8080 to handle a TCP connection\n")
 	fmt.Print("  -op <string>   \n      Input the name of the op you want to perform:\n")
 	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
+	fmt.Print("        Send <Asset Name:string> <Peer address:string>")
 }
 
 func InitFlags() *FlagValues {
@@ -211,8 +216,17 @@ func getOpArgs(op OPERATION) []string {
 				break
 			}
 		}
-	case ViewAssets:
-		//There is nothing to gather
+	case ViewAssets: //There is nothing to gather
+
+	case Send:
+		operation = "Send"
+		for i := 0; i < len(args); i++ {
+			if args[i] == operation && i < len(args)-1 {
+				opArgs = append(opArgs, args[i+1])
+				opArgs = append(opArgs, args[i+2])
+				break
+			}
+		}
 	}
 
 	return opArgs
@@ -253,14 +267,14 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		args := getOpArgs(AddAsset)
 
 		if len(args) != 2 {
-			log.Printf("Error: Operation AddAsset did not receive the right amount of arguments\n")
+			log.Printf("ERROR: Operation AddAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
 		}
 
 		asset, err := Wallet.AddAsset(args[0], args[1])
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
+			log.Printf("ERROR: %s\n", err.Error())
 			log.Printf("Failed to add asset: %s\n", args[0])
 			return AddAssetFailed
 		}
@@ -268,7 +282,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		err = BC.AddData("ADDED", Wallet.GetUsername(), asset)
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
+			log.Printf("ERROR: %s\n", err.Error())
 			log.Printf("Failed to add metadata: %s\n", asset.GetName())
 			return AddAssetFailed
 		}
@@ -279,14 +293,14 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		args := getOpArgs(RemoveAsset)
 
 		if len(args) != 1 {
-			log.Printf("Error: Operation RemoveAsset did not receive the right amount of arguments\n")
+			log.Printf("ERROR: Operation RemoveAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
 		}
 
 		asset, err := Wallet.RemoveAsset(args[0])
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
+			log.Printf("ERROR: %s\n", err.Error())
 			log.Printf("Failed to remove asset: %s\n", args[0])
 			return RemoveAssetFailed
 		}
@@ -294,7 +308,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		err = BC.AddData(Wallet.GetUsername(), "REMOVED", asset)
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
+			log.Printf("ERROR: %s\n", err.Error())
 			log.Printf("Failed to add metadata: %s\n", asset.GetName())
 			return AddAssetFailed
 		}
@@ -315,7 +329,35 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		}
 
 		return Success
+	case "Send":
+		args := getOpArgs(Send)
 
+		if len(args) != 2 {
+			log.Printf("ERROR: Operation Send did not receive the right amount of arguments\n")
+			return WrongNumberOfArgsGivenToOp
+		}
+
+		asset, err := Wallet.GetAsset(args[0])
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return SendFailed
+		}
+
+		ma, err := multiaddr.NewMultiaddr(args[1])
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return SendFailed
+		}
+
+		err = network.SendTo(Wallet.GetHost(), asset.GetAssetBytes(), ma)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return SendFailed
+		}
+		return Success
 	default:
 		return UnknownOperation
 

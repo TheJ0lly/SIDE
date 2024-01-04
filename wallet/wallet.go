@@ -140,6 +140,16 @@ func (w *Wallet) ViewAssets() []asset.Asset {
 	return assetSlice
 }
 
+func (w *Wallet) GetAsset(assetName string) (*asset.Asset, error) {
+	for _, a := range w.mAssets {
+		if a.GetName() == assetName {
+			return a, nil
+		}
+	}
+
+	return nil, &generalerrors.AssetDoesNotExist{AssetName: assetName}
+}
+
 func (w *Wallet) GetUsername() string {
 	return w.mUsername
 }
@@ -152,4 +162,8 @@ func (w *Wallet) ConfirmPassword(pass string) bool {
 
 func (w *Wallet) GetDBLocation() string {
 	return w.mDatabaseDir
+}
+
+func (w *Wallet) GetHost() core.Host {
+	return w.mHost
 }
