@@ -60,7 +60,7 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 		defAddrs = append(defAddrs, Opt.addrs...)
 	}
 
-	host, err := libp2p.New(
+	h, err := libp2p.New(
 		libp2p.ListenAddrStrings(defAddrs...),
 	)
 
@@ -68,10 +68,10 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 		return nil, err
 	}
 
-	log.Printf("Initializing node with the following addresses: %v\n", host.Addrs())
+	log.Printf("Initializing node with the following addresses: %v\n", h.Addrs())
 
 	log.Printf("Node has been initialized!\n")
-	return host, nil
+	return h, nil
 }
 
 func SendTo(from host.Host, data []byte, to multiaddr.Multiaddr) error {
@@ -88,6 +88,9 @@ func SendTo(from host.Host, data []byte, to multiaddr.Multiaddr) error {
 	}
 
 	log.Printf("Sending data...\n")
+	//Write the data len to the stream, to help the "other side" to make enough space for this data.
+
+	//Write the data to the stream
 	n, err := s.Write(data)
 
 	if err != nil {
