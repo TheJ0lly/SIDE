@@ -221,7 +221,7 @@ func getOpArgs(op OPERATION) []string {
 	case Send:
 		operation = "Send"
 		for i := 0; i < len(args); i++ {
-			if args[i] == operation && i < len(args)-1 {
+			if args[i] == operation && i < len(args)-2 {
 				opArgs = append(opArgs, args[i+1])
 				opArgs = append(opArgs, args[i+2])
 				break
