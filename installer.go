@@ -67,6 +67,6 @@ func main() {
 		return
 	}
 
-	log.Printf("GoChain executable ready to use!\n")
+	log.Printf("SIDE executable ready to use!\n")
 
 }

@@ -87,7 +87,7 @@ func IsExecutable(filepath string) bool {
 
 func RemoveUninstaller(dir string) error {
 	if runtime.GOOS == "windows" {
-		uninstallerPath := CreatePath(dir, "GoChain_Uninstaller.exe")
+		uninstallerPath := CreatePath(dir, "SIDE_Uninstaller.exe")
 		removeUninstaller := "/c start timeout /t 1 /NOBREAK > NUL && del " + uninstallerPath
 
 		s := exec.Command("cmd.exe", removeUninstaller)
@@ -100,7 +100,7 @@ func RemoveUninstaller(dir string) error {
 		}
 		return nil
 	} else {
-		uninstallerPath := CreatePath(dir, "GoChain_Uninstaller")
+		uninstallerPath := CreatePath(dir, "SIDE_Uninstaller")
 		removeUninstaller := " sleep 1 && rm " + uninstallerPath
 
 		s := exec.Command("bash", "-c", removeUninstaller)

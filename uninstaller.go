@@ -65,7 +65,7 @@ func main() {
 				generalerrors.HandleError(generalerrors.WARNING, err)
 				continue
 			}
-		} else if !strings.Contains(f.Name(), "GoChain_Uninstaller") {
+		} else if !strings.Contains(f.Name(), "SIDE_Uninstaller") {
 			err = os.Remove(osspecifics.CreatePath(dir, f.Name()))
 
 			if err != nil {
