@@ -1,6 +1,7 @@
 package osspecifics
 
 import (
+	"fmt"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"log"
 	"os"
@@ -49,6 +50,67 @@ func GetFileName(filepath string) string {
 	}
 
 	return string(filename)
+}
+
+func LockFile(fp string) error {
+	exp, err := os.Executable()
+
+	if err != nil {
+		return err
+	}
+
+	expdir := filepath.Dir(exp)
+
+	lockf := fmt.Sprintf("%s_open", fp)
+
+	err = os.WriteFile(CreatePath(expdir, lockf), nil, 0666)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UnlockFile(fp string) {
+	exp, err := os.Executable()
+
+	if err != nil {
+		generalerrors.HandleError(generalerrors.ERROR, err)
+	}
+
+	expdir := filepath.Dir(exp)
+
+	lockf := fmt.Sprintf("%s_open", fp)
+
+	//If it cannot find the file, then that's it.
+	_ = os.Remove(CreatePath(expdir, lockf))
+}
+
+func IsLocked(fp string) bool {
+	exp, err := os.Executable()
+
+	if err != nil {
+		return false
+	}
+
+	expdir := filepath.Dir(exp)
+
+	lockf := fmt.Sprintf("%s_open", fp)
+
+	files, err := os.ReadDir(expdir)
+
+	if err != nil {
+		return false
+	}
+
+	for _, f := range files {
+		if f.Name() == lockf {
+			return true
+		}
+	}
+
+	return false
 }
 
 func ClearFolder(folder string) error {

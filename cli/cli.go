@@ -131,6 +131,12 @@ func getBlockchain() (*blockchain.BlockChain, error) {
 		return nil, err
 	}
 
+	err = BC.Lock()
+
+	if err != nil {
+		return nil, err
+	}
+
 	return BC, nil
 }
 
@@ -365,7 +371,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 }
 
 // Execute - will execute the action chosen by the user on the blockchain, local and remote.
-func Execute(fv *FlagValues) {
+func Execute(fv *FlagValues) int {
 
 	var BC *blockchain.BlockChain
 
@@ -376,28 +382,30 @@ func Execute(fv *FlagValues) {
 
 	if err != nil {
 		generalerrors.HandleError(generalerrors.ERROR, err)
-		os.Exit(FailedGetBC)
+		return FailedGetBC
 	}
+
+	defer BC.Unlock()
 
 	//Wallet handling
 	Wallet, err = getWallet(fv)
 
 	if err != nil {
 		generalerrors.HandleError(generalerrors.ERROR, err)
-		os.Exit(FailedGetWallet)
+		return FailedGetWallet
 	}
 
 	if fv.DeleteWalletSave {
 		if !walletExists(Wallet.GetUsername()) {
 			log.Printf("Error: Username \"%s\" does not exist!\n", Wallet.GetUsername())
-			os.Exit(FailedDeleteWallet)
+			return FailedDeleteWallet
 		}
 
 		exePath, err := os.Executable()
 
 		if err != nil {
 			log.Printf("Error: %s\n", err)
-			os.Exit(FailedToGetExeFolder)
+			return FailedToGetExeFolder
 		}
 
 		dir := filepath.Dir(exePath)
@@ -407,7 +415,7 @@ func Execute(fv *FlagValues) {
 		if err != nil {
 			log.Printf("Error: %s\n", err.Error())
 			log.Printf("Could not delete Wallet save and Assets folder\n")
-			os.Exit(FailedDeleteWallet)
+			return FailedDeleteWallet
 		}
 
 		WalletSavePath := osspecifics.CreatePath(dir, Wallet.GetUsername())
@@ -417,17 +425,17 @@ func Execute(fv *FlagValues) {
 		if err != nil {
 			generalerrors.HandleError(generalerrors.ERROR, err)
 			log.Printf("Error: Failed to remove the wallet save\n")
-			os.Exit(FailedDeleteWallet)
+			return FailedDeleteWallet
 		}
 
 		log.Printf("Successfully deleted wallet save and and cleared the assets folder!\n")
-		os.Exit(Success)
+		return Success
 
 	}
 
 	if !Wallet.ConfirmPassword(fv.Password) {
 		log.Printf("Wrong password for user: %s\n", fv.Username)
-		os.Exit(WrongPass)
+		return WrongPass
 	}
 	log.Printf("Logged in successfully as: %s\n", Wallet.GetUsername())
 
@@ -438,13 +446,15 @@ func Execute(fv *FlagValues) {
 		if retVal == UnknownOperation {
 			log.Printf("Unknown operation: %s\n", fv.Operation)
 		}
-		os.Exit(retVal)
+		return retVal
 	}
 
 	if fv.Operation == "ViewAssets" {
-		os.Exit(Success)
+		return Success
 	}
 
 	//Export states
 	exportStates(Wallet, BC)
+
+	return Success
 }

@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
@@ -14,6 +15,22 @@ import (
 type blockchainIE struct {
 	DatabaseDir   string `json:"DatabaseDir"`
 	LastBlockHash string `json:"LastBlockHash"`
+}
+
+func (bc *BlockChain) Lock() error {
+	log.Printf("Locking the blockchain save file.")
+	err := osspecifics.LockFile("bcs.json")
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (bc *BlockChain) Unlock() {
+	osspecifics.UnlockFile("bcs.json")
+	log.Printf("The blockchain save file has been unlocked.")
 }
 
 func ImportChain() (*BlockChain, error) {
@@ -73,6 +90,10 @@ func ImportChain() (*BlockChain, error) {
 
 	bc.mLastBlock = bc.mBlocks[len(bc.mBlocks)-1]
 
+	if osspecifics.IsLocked("bcs.json") {
+		return nil, errors.New("The blockchain save file is locked")
+	}
+
 	return bc, nil
 
 }
@@ -117,5 +138,6 @@ func (bc *BlockChain) ExportChain() error {
 	}
 
 	log.Print("Blockchain state exported successfully!\n")
+
 	return nil
 }
