@@ -41,7 +41,8 @@ func main() {
 	files, err := os.ReadDir(dir)
 
 	for _, f := range files {
-		if !osspecifics.IsExecutable(f.Name()) && f.Name() != "bcs.json" {
+		if f.IsDir() {
+			//if !osspecifics.IsExecutable(f.Name()) && f.Name() != "bcs.json" {
 			Wallet, err := wallet.ImportWallet(f.Name())
 
 			if err != nil {
@@ -58,6 +59,13 @@ func main() {
 			}
 
 			WalletSavePath := osspecifics.CreatePath(dir, Wallet.GetUsername())
+
+			err = osspecifics.ClearFolder(WalletSavePath)
+
+			if err != nil {
+				generalerrors.HandleError(generalerrors.WARNING, err)
+				continue
+			}
 
 			err = os.Remove(WalletSavePath)
 

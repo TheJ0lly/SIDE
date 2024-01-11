@@ -32,6 +32,7 @@ const (
 	FailedGetWallet
 	FailedToGetExeFolder
 	UnknownOperation
+	FailedExporting
 )
 
 type OPERATION int
@@ -147,8 +148,10 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 
 	if fv.NewWallet != NoValuePassed { // Create new wallet
 
-		if walletExists(fv.Username) {
+		if bv, err := walletExists(fv.Username); bv == true {
 			return nil, errors.New(fmt.Sprintf("The user %s already exists!", fv.Username))
+		} else if err != nil {
+			return nil, err
 		}
 
 		fv.NewWallet = osspecifics.GetFullPathFromArg(fv.NewWallet)
@@ -181,20 +184,22 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 	return Wallet, nil
 }
 
-func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) {
+func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
 
 	fmt.Print("\n")
 	err := BC.ExportChain()
 
 	if err != nil {
-		generalerrors.HandleError(generalerrors.ERROR, err, err)
+		return err
 	}
 
 	err = Wallet.ExportWallet()
 
 	if err != nil {
-		generalerrors.HandleError(generalerrors.ERROR, err, err)
+		return err
 	}
+
+	return nil
 }
 
 func getOpArgs(op OPERATION) []string {
@@ -238,28 +243,30 @@ func getOpArgs(op OPERATION) []string {
 	return opArgs
 }
 
-func walletExists(username string) bool {
+func walletExists(username string) (bool, error) {
 
 	exePath, err := os.Executable()
 
 	if err != nil {
-		log.Fatalf("ERROR: %s\n", err)
+		log.Printf("ERROR: %s\n", err)
+		return false, err
 	}
 	exeDir := filepath.Dir(exePath)
 
 	files, err := os.ReadDir(exeDir)
 
 	if err != nil {
-		log.Fatalf("ERROR: %s\n", err)
+		log.Printf("ERROR: %s\n", err)
+		return false, err
 	}
 
 	for _, f := range files {
 		if strings.Contains(f.Name(), username) {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.BlockChain) int {
@@ -396,8 +403,11 @@ func Execute(fv *FlagValues) int {
 	}
 
 	if fv.DeleteWalletSave {
-		if !walletExists(Wallet.GetUsername()) {
+		if bv, err := walletExists(Wallet.GetUsername()); bv == false && err != nil {
 			log.Printf("Error: Username \"%s\" does not exist!\n", Wallet.GetUsername())
+			return FailedDeleteWallet
+		} else if err != nil {
+			log.Printf("Error: %s\n", err)
 			return FailedDeleteWallet
 		}
 
@@ -454,7 +464,12 @@ func Execute(fv *FlagValues) int {
 	}
 
 	//Export states
-	exportStates(Wallet, BC)
+	err = exportStates(Wallet, BC)
+
+	if err != nil {
+		generalerrors.HandleError(generalerrors.ERROR, err)
+		return FailedExporting
+	}
 
 	return Success
 }

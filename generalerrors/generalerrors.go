@@ -92,6 +92,10 @@ type UserNotFound struct {
 	UserName string
 }
 
+type FailedToCreateUserDir struct {
+	UserName string
+}
+
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
@@ -176,6 +180,10 @@ func (ane *AssetDoesNotExist) Error() string {
 
 func (unf *UserNotFound) Error() string {
 	return fmt.Sprintf("No user \"%s\" has been found.", unf.UserName)
+}
+
+func (fcud *FailedToCreateUserDir) Error() string {
+	return fmt.Sprintf("Cannot create the dir for the user %s", fcud.UserName)
 }
 
 // ======== HANDLE ERROR FUNCTION ========

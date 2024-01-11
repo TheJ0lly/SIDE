@@ -32,7 +32,8 @@ func ImportWallet(username string) (*Wallet, error) {
 
 	dir := filepath.Dir(exePath)
 
-	path := osspecifics.CreatePath(dir, username)
+	path := osspecifics.CreatePath(dir, username, "config")
+
 	allBytes, err := os.ReadFile(path)
 
 	if err != nil {
@@ -144,6 +145,17 @@ func (w *Wallet) ExportWallet() error {
 	}
 
 	path := osspecifics.CreatePath(dir, wie.Username)
+
+	_, err = os.Stat(path)
+
+	if os.IsNotExist(err) {
+		err = os.Mkdir(path, 0777)
+		if err != nil {
+			return &generalerrors.FailedToCreateUserDir{UserName: wie.Username}
+		}
+	}
+
+	path = osspecifics.CreatePath(path, "config")
 
 	err = os.WriteFile(path, bytesToWrite, 0666)
 
