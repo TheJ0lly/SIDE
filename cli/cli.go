@@ -424,11 +424,19 @@ func Execute(fv *FlagValues) int {
 
 		if err != nil {
 			log.Printf("Error: %s\n", err.Error())
-			log.Printf("Could not delete Wallet save and Assets folder\n")
+			log.Printf("Error: Could not clear Assets folder\n")
 			return FailedDeleteWallet
 		}
 
 		WalletSavePath := osspecifics.CreatePath(dir, Wallet.GetUsername())
+
+		err = osspecifics.ClearFolder(WalletSavePath)
+
+		if err != nil {
+			log.Printf("Error: %s\n", err.Error())
+			log.Printf("Error: Could not delete Wallet folder\n")
+			return FailedDeleteWallet
+		}
 
 		err = os.Remove(WalletSavePath)
 
