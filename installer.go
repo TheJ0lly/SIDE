@@ -12,6 +12,7 @@ import (
 
 func InstallerHelp() {
 	fmt.Printf("Usage: <exec> -d <string>\n")
+	fmt.Printf("  -d\n      Input the directory in which you want to hold the blockchain data.\n")
 	fmt.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
 }
 
@@ -23,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	if *Database == "" {
-		log.Printf("Error: No directory to install into. Set the value with \"d\".")
+		log.Printf("Error: No directory to install into. Set the value with the \"d\" flag.")
 		return
 	}
 
