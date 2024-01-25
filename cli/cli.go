@@ -73,7 +73,7 @@ func displayHelp() {
 	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
-	fmt.Print("        Send <Asset Name:string> <Peer address:string>")
+	fmt.Print("        Send <Asset Name:string> <Peer address:string>\n")
 }
 
 func InitFlags() *FlagValues {
