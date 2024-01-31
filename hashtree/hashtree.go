@@ -12,7 +12,7 @@ type Pair struct {
 
 type Node struct {
 	mHash      [32]byte
-	mDirection bool
+	mDirection bool //if direction is true it means the hash is on the right, else is on the left
 }
 
 type Tree struct {
