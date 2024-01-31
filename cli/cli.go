@@ -9,6 +9,7 @@ import (
 	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
+	"github.com/howeyc/gopass"
 	"github.com/multiformats/go-multiaddr"
 	"io/fs"
 	"log"
@@ -80,7 +81,7 @@ func InitFlags() *FlagValues {
 
 	H := flag.Bool("h", false, "")
 	U := flag.String("u", NoValuePassed, "")
-	P := flag.String("p", NoValuePassed, "")
+	//P := flag.String("p", NoValuePassed, "")
 	NewWallet := flag.String("n", NoValuePassed, "")
 	Operation := flag.String("op", NoValuePassed, "")
 	DeleteWalletSave := flag.Bool("d", false, "")
@@ -97,7 +98,7 @@ func InitFlags() *FlagValues {
 		os.Exit(HelpCalled)
 	}
 
-	if *U == NoValuePassed || *P == NoValuePassed {
+	if *U == NoValuePassed {
 		displayHelp()
 		os.Exit(NoPassOrUser)
 	}
@@ -108,9 +109,22 @@ func InitFlags() *FlagValues {
 		Addresses = strings.Split(*ADDRS, " ")
 	}
 
+	if *NewWallet != NoValuePassed {
+		fmt.Printf("Enter password for new user %s:", *U)
+	} else {
+		fmt.Printf("Enter password for user %s:", *U)
+	}
+
+	password, err := gopass.GetPasswd()
+
+	if err != nil {
+		log.Printf("Error: %s\n", err)
+		return nil
+	}
+
 	return &FlagValues{
 		Username:         *U,
-		Password:         *P,
+		Password:         string(password),
 		NewWallet:        *NewWallet,
 		Operation:        *Operation,
 		DeleteWalletSave: *DeleteWalletSave,
