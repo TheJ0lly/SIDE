@@ -7,7 +7,6 @@ import (
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p"
-	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
 	"path/filepath"
@@ -70,25 +69,12 @@ func ImportWallet(username string) (*Wallet, error) {
 		assetSlice = append(assetSlice, newAsset)
 	}
 
-	var MASlice []multiaddr.Multiaddr
-
-	for _, a := range wie.Addresses {
-		ma, err := multiaddr.NewMultiaddr(a)
-
-		if err != nil {
-			return nil, err
-		}
-
-		MASlice = append(MASlice, ma)
-	}
-
-	log.Printf("Starting node...\n")
 	host, err := libp2p.New(
 		libp2p.ListenAddrStrings(wie.Addresses...),
 	)
 
 	if err != nil {
-		log.Printf("Node could not start.\n")
+		log.Printf("Could not initialize node.\n")
 		return nil, err
 	}
 
@@ -101,7 +87,7 @@ func ImportWallet(username string) (*Wallet, error) {
 		mAssets:      assetSlice,
 		mHost:        host,
 	}
-	log.Printf("Node successfully started, listening: %v\n", w.mHost.Addrs())
+
 	return w, nil
 }
 
