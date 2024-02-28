@@ -62,7 +62,6 @@ func displayHelp() {
 
 	fmt.Print("  -h             \n      Display help menu.\n")
 	fmt.Print("  -u <string>    \n      Input the username of the wallet you want to log in.\n")
-	fmt.Print("  -p <string>    \n      Input the password of the wallet you want to log in.\n")
 	fmt.Print("  -n <string>    \n      Creates a new instance of a wallet.\n")
 	fmt.Print("  -d             \n      Delete the wallet.\n")
 	fmt.Print("  -ip6           \n      Allow the auto-search for available IPv6 addresses when creating the wallet.\n")
@@ -416,6 +415,11 @@ func Execute(fv *FlagValues) int {
 		return FailedGetWallet
 	}
 
+	if !Wallet.ConfirmPassword(fv.Password) {
+		log.Printf("Wrong password for user: %s\n", fv.Username)
+		return WrongPass
+	}
+
 	if fv.DeleteWalletSave {
 		if bv, err := walletExists(Wallet.GetUsername()); bv == false && err != nil {
 			log.Printf("Error: Username \"%s\" does not exist!\n", Wallet.GetUsername())
@@ -465,10 +469,6 @@ func Execute(fv *FlagValues) int {
 
 	}
 
-	if !Wallet.ConfirmPassword(fv.Password) {
-		log.Printf("Wrong password for user: %s\n", fv.Username)
-		return WrongPass
-	}
 	log.Printf("Logged in successfully as: %s\n", Wallet.GetUsername())
 
 	//Perform actions based on Flag Values
