@@ -421,14 +421,6 @@ func Execute(fv *FlagValues) int {
 	}
 
 	if fv.DeleteWalletSave {
-		if bv, err := walletExists(Wallet.GetUsername()); bv == false && err != nil {
-			log.Printf("Error: Username \"%s\" does not exist!\n", Wallet.GetUsername())
-			return FailedDeleteWallet
-		} else if err != nil {
-			log.Printf("Error: %s\n", err)
-			return FailedDeleteWallet
-		}
-
 		exePath, err := os.Executable()
 
 		if err != nil {
