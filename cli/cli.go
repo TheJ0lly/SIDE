@@ -90,12 +90,11 @@ func InitFlags() *FlagValues {
 	flag.Parse()
 
 	if *H {
-		displayHelp()
+		flag.Usage()
 		os.Exit(HelpCalled)
 	}
 
 	if *U == NoValuePassed {
-		displayHelp()
 		os.Exit(NoPassOrUser)
 	}
 
@@ -114,7 +113,7 @@ func InitFlags() *FlagValues {
 	password, err := gopass.GetPasswd()
 
 	if err != nil {
-		log.Printf("Error: %s\n", err)
+		log.Printf("ERROR: %s\n", err)
 		return nil
 	}
 
