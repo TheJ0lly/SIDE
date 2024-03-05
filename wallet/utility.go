@@ -4,7 +4,7 @@ import (
 	"github.com/TheJ0lly/GoChain/asset"
 )
 
-// This function
+// This function check if the asset exists based on its name.
 func (w *Wallet) checkAssetExists(assetName string) bool {
 	for _, a := range w.mAssets {
 		if a.GetName() == assetName {

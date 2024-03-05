@@ -29,6 +29,7 @@ func CreateNodeOptions(IPv4 bool, IPv6 bool, addresses ...string) Options {
 	}
 }
 
+// getDefaultAddresses - this function will assign the multi address form to notify the libp2p that it should auto search for an address
 func getDefaultAddresses(Opt Options) []string {
 	var addrs []string
 

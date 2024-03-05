@@ -22,6 +22,7 @@ func init() {
 	}
 }
 
+// CreatePath - will concatenate different strings to form a file path
 func CreatePath(format ...string) string {
 	var stringToReturn string
 

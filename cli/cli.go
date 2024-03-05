@@ -76,11 +76,10 @@ func displayHelp() {
 	fmt.Print("        Send <Asset Name:string> <Peer address:string>\n")
 }
 
+// InitFlags - will initialize the flags that will be used to execute the client.
 func InitFlags() *FlagValues {
-
 	H := flag.Bool("h", false, "")
 	U := flag.String("u", NoValuePassed, "")
-	//P := flag.String("p", NoValuePassed, "")
 	NewWallet := flag.String("n", NoValuePassed, "")
 	Operation := flag.String("op", NoValuePassed, "")
 	DeleteWalletSave := flag.Bool("d", false, "")
@@ -134,6 +133,7 @@ func InitFlags() *FlagValues {
 
 }
 
+// getBlockchain - is a helper function that will import the blockchain if possible, otherwise return error
 func getBlockchain() (*blockchain.BlockChain, error) {
 	var BC *blockchain.BlockChain
 	var err error
@@ -154,6 +154,7 @@ func getBlockchain() (*blockchain.BlockChain, error) {
 	return BC, nil
 }
 
+// getWallet - is a helper function that will import a wallet if possible, otherwise return error
 func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 	var Wallet *wallet.Wallet
 	var err error
@@ -197,6 +198,7 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 	return Wallet, nil
 }
 
+// exportStates - is a utility function that exports the states of the current wallet and the blockchain
 func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
 
 	fmt.Print("\n")
@@ -215,6 +217,7 @@ func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
 	return nil
 }
 
+// getOpArgs - this function will return the arguments to a client operation
 func getOpArgs(op OPERATION) []string {
 	args := os.Args
 	var opArgs []string
@@ -256,6 +259,7 @@ func getOpArgs(op OPERATION) []string {
 	return opArgs
 }
 
+// walletExists - checks if a wallet exists
 func walletExists(username string) (bool, error) {
 
 	exePath, err := os.Executable()
@@ -282,6 +286,7 @@ func walletExists(username string) (bool, error) {
 	return false, nil
 }
 
+// performOperation - will perform the operation chosen by the user, along with the specified flags
 func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.BlockChain) int {
 
 	if fv.Operation == NoValuePassed {

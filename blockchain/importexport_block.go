@@ -27,6 +27,7 @@ type blockIE struct {
 	PrevHash string       `json:"prev_hash"`
 }
 
+// getByteFromHex - will return a byte formed out of 2 hex characters
 func getByteFromHex(first byte, second byte) byte {
 	var final byte
 
@@ -50,6 +51,7 @@ func getByteFromHex(first byte, second byte) byte {
 
 }
 
+// getMetadataIESlice - will return the metadata of transaction in an exportable format
 func getMetadataIESlice(b *Block) []metadataIE {
 	var mdSlice []metadataIE
 	for _, md := range b.mMetaData {
@@ -63,6 +65,7 @@ func getMetadataIESlice(b *Block) []metadataIE {
 	return mdSlice
 }
 
+// GetMetadataSlice - will generate the metadata.MetaData slice from the exportable format
 func GetMetadataSlice(mie []metadataIE) []*metadata.MetaData {
 	var mdSlice []*metadata.MetaData
 
@@ -73,6 +76,7 @@ func GetMetadataSlice(mie []metadataIE) []*metadata.MetaData {
 	return mdSlice
 }
 
+// ImportBlock - will import a single block
 func ImportBlock(location string) (*Block, error) {
 	//UnMarshalling the blockIE
 	allBytes, err := os.ReadFile(location)
@@ -140,6 +144,7 @@ func ImportBlock(location string) (*Block, error) {
 
 }
 
+// ExportBlock - will export a block
 func ExportBlock(folderLocation string, b *Block) error {
 	bie := blockIE{
 		MetaData: getMetadataIESlice(b),

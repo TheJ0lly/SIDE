@@ -17,6 +17,7 @@ type blockchainIE struct {
 	LastBlockHash string `json:"LastBlockHash"`
 }
 
+// Lock - will create a file that signals that the blockchain is currently in use.
 func (bc *BlockChain) Lock() error {
 	log.Printf("Locking the blockchain save file.")
 	err := osspecifics.LockFile("bcs.json")
@@ -28,6 +29,7 @@ func (bc *BlockChain) Lock() error {
 	return nil
 }
 
+// Unlock - will remove the lock file, thus signaling that the blockchain is ready to use.
 func (bc *BlockChain) Unlock() {
 	osspecifics.UnlockFile("bcs.json")
 	log.Printf("The blockchain save file has been unlocked.")
@@ -98,6 +100,7 @@ func ImportChain() (*BlockChain, error) {
 
 }
 
+// ExportChain - will export the whole chain
 func (bc *BlockChain) ExportChain() error {
 	exePath, err := os.Executable()
 

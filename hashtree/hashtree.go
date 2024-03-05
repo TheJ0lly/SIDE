@@ -39,6 +39,7 @@ func GenerateTree(l [][32]byte) *Tree {
 	return t
 }
 
+// generateTreeRecursive - will generate the tree matrix recursively
 func generateTreeRecursive(l [][32]byte, t *Tree) {
 	var newList [][32]byte
 
@@ -88,6 +89,7 @@ func ValidateData(name metadata.MetaData, t *Tree) bool {
 	return nameHash == t.RootHash
 }
 
+// ClearTree - will clear the current tree
 func (t *Tree) ClearTree() {
 	t.mTreeMatrix = nil
 }

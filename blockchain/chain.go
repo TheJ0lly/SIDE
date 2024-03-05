@@ -71,6 +71,7 @@ func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asse
 	return nil
 }
 
+// GetDBLocation - return the location of the directory where blockchain data is stored
 func (bc *BlockChain) GetDBLocation() string {
 	return bc.mDatabaseDir
 }

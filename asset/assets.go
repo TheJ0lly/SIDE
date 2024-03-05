@@ -60,6 +60,7 @@ func (a *Asset) GetAssetCopy() Asset {
 	}
 }
 
+// GetAssetBytes - will return the data of the asset
 func (a *Asset) GetAssetBytes() []byte {
 	return a.mData
 }
