@@ -24,14 +24,14 @@ func main() {
 	flag.Parse()
 
 	if *Database == "" {
-		log.Printf("Error: No directory to install into. Set the value with the \"d\" flag.")
+		log.Printf("ERROR: No directory to install into. Set the value with the \"d\" flag.")
 		return
 	}
 
 	*Database = osspecifics.GetFullPathFromArg(*Database)
 
 	if *ClearFolder {
-		log.Printf("Clearing selected folder...\n")
+		log.Printf("INFO: clearing selected folder...\n")
 		err := osspecifics.ClearFolder(*Database)
 
 		if err != nil {
@@ -48,18 +48,18 @@ func main() {
 	}
 
 	if len(files) > 0 {
-		log.Printf("Error: Folder already contains some files!\n To clear the folder use the flag: -n\n")
+		log.Printf("ERROR: folder already contains some files!\n To clear the folder use the flag: -n\n")
 		return
 	}
 
-	log.Printf("Initializing BlockChain...\n")
+	log.Printf("INFO: initializing blockchain...\n")
 	BC, err := blockchain.CreateNewBlockchain(*Database)
 
 	if err != nil {
 		generalerrors.HandleError(generalerrors.ERROR, err)
 		return
 	}
-	log.Printf("BlockChain intialized!\n\n")
+	log.Printf("INFO: blockchain intialized!\n\n")
 
 	err = BC.ExportChain()
 
@@ -68,6 +68,6 @@ func main() {
 		return
 	}
 
-	log.Printf("SIDE executable ready to use!\n")
+	log.Printf("INFO: SIDE executable ready to use!\n")
 
 }

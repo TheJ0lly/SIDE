@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
-	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/howeyc/gopass"
-	"github.com/multiformats/go-multiaddr"
 	"io/fs"
 	"log"
 	"os"
@@ -163,7 +161,7 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 	if fv.NewWallet != NoValuePassed { // Create new wallet
 
 		if bv, err := walletExists(fv.Username); bv == true {
-			return nil, errors.New(fmt.Sprintf("The user %s already exists!", fv.Username))
+			return nil, errors.New(fmt.Sprintf("the user %s already exists!", fv.Username))
 		} else if err != nil {
 			return nil, err
 		}
@@ -186,7 +184,7 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 			return nil, err
 		}
 
-		log.Printf("Created a new Wallet\n")
+		log.Printf("INFO: created a new wallet\n")
 	} else { // Import wallet
 		Wallet, err = wallet.ImportWallet(fv.Username)
 
@@ -265,7 +263,6 @@ func walletExists(username string) (bool, error) {
 	exePath, err := os.Executable()
 
 	if err != nil {
-		log.Printf("ERROR: %s\n", err)
 		return false, err
 	}
 	exeDir := filepath.Dir(exePath)
@@ -273,7 +270,6 @@ func walletExists(username string) (bool, error) {
 	files, err := os.ReadDir(exeDir)
 
 	if err != nil {
-		log.Printf("ERROR: %s\n", err)
 		return false, err
 	}
 
@@ -298,59 +294,59 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		args := getOpArgs(AddAsset)
 
 		if len(args) != 2 {
-			log.Printf("ERROR: Operation AddAsset did not receive the right amount of arguments\n")
+			log.Printf("ERROR: operation AddAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
 		}
 
 		asset, err := Wallet.AddAsset(args[0], args[1])
 
 		if err != nil {
+			log.Printf("INFO: failed to add asset: %s\n", args[0])
 			log.Printf("ERROR: %s\n", err.Error())
-			log.Printf("Failed to add asset: %s\n", args[0])
 			return AddAssetFailed
 		}
 
 		err = BC.AddData("ADDED", Wallet.GetUsername(), asset)
 
 		if err != nil {
+			log.Printf("INFO: failed to add metadata: %s\n", asset.GetName())
 			log.Printf("ERROR: %s\n", err.Error())
-			log.Printf("Failed to add metadata: %s\n", asset.GetName())
 			return AddAssetFailed
 		}
 
-		log.Printf("Added Asset \"%s\" successfully!\n", asset.GetName())
+		log.Printf("INFO: added asset \"%s\" successfully!\n", asset.GetName())
 		return Success
 	case "RemoveAsset":
 		args := getOpArgs(RemoveAsset)
 
 		if len(args) != 1 {
-			log.Printf("ERROR: Operation RemoveAsset did not receive the right amount of arguments\n")
+			log.Printf("ERROR: operation RemoveAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
 		}
 
 		asset, err := Wallet.RemoveAsset(args[0])
 
 		if err != nil {
+			log.Printf("INFO: failed to remove asset: %s\n", args[0])
 			log.Printf("ERROR: %s\n", err.Error())
-			log.Printf("Failed to remove asset: %s\n", args[0])
 			return RemoveAssetFailed
 		}
 
 		err = BC.AddData(Wallet.GetUsername(), "REMOVED", asset)
 
 		if err != nil {
+			log.Printf("INFO: failed to add metadata: %s\n", asset.GetName())
 			log.Printf("ERROR: %s\n", err.Error())
-			log.Printf("Failed to add metadata: %s\n", asset.GetName())
 			return AddAssetFailed
 		}
 
-		log.Printf("Removed Asset \"%s\" successfully!\n", asset.GetName())
+		log.Printf("INFO: removed asset \"%s\" successfully!\n", asset.GetName())
 		return Success
 	case "ViewAssets":
 		assetSlice := Wallet.ViewAssets()
 
 		if assetSlice == nil {
-			log.Printf("There are no assets to show\n")
+			log.Printf("INFO: there are no assets to show\n")
 			return Success
 		}
 
@@ -359,35 +355,6 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			fmt.Print("\n")
 		}
 
-		return Success
-	case "Send":
-		args := getOpArgs(Send)
-
-		if len(args) != 2 {
-			log.Printf("ERROR: Operation Send did not receive the right amount of arguments\n")
-			return WrongNumberOfArgsGivenToOp
-		}
-
-		asset, err := Wallet.GetAsset(args[0])
-
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-			return SendFailed
-		}
-
-		ma, err := multiaddr.NewMultiaddr(args[1])
-
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-			return SendFailed
-		}
-
-		err = network.SendTo(Wallet.GetHost(), asset.GetAssetBytes(), ma)
-
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-			return SendFailed
-		}
 		return Success
 	default:
 		return UnknownOperation
@@ -421,7 +388,7 @@ func Execute(fv *FlagValues) int {
 	}
 
 	if !Wallet.ConfirmPassword(fv.Password) {
-		log.Printf("Wrong password for user: %s\n", fv.Username)
+		log.Printf("ERROR: wrong password for user: %s\n", fv.Username)
 		return WrongPass
 	}
 
@@ -429,7 +396,7 @@ func Execute(fv *FlagValues) int {
 		exePath, err := os.Executable()
 
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			log.Printf("ERROR: %s\n", err)
 			return FailedToGetExeFolder
 		}
 
@@ -438,8 +405,8 @@ func Execute(fv *FlagValues) int {
 		err = osspecifics.ClearFolder(Wallet.GetDBLocation())
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
-			log.Printf("Error: Could not clear Assets folder\n")
+			log.Printf("INFO: could not clear assets folder\n")
+			log.Printf("ERROR: %s\n", err.Error())
 			return FailedDeleteWallet
 		}
 
@@ -448,32 +415,32 @@ func Execute(fv *FlagValues) int {
 		err = osspecifics.ClearFolder(WalletSavePath)
 
 		if err != nil {
-			log.Printf("Error: %s\n", err.Error())
-			log.Printf("Error: Could not delete Wallet folder\n")
+			log.Printf("INFO: could not delete wallet folder\n")
+			log.Printf("ERROR: %s\n", err.Error())
 			return FailedDeleteWallet
 		}
 
 		err = os.Remove(WalletSavePath)
 
 		if err != nil {
+			log.Printf("ERROR: failed to remove the wallet save\n")
 			generalerrors.HandleError(generalerrors.ERROR, err)
-			log.Printf("Error: Failed to remove the wallet save\n")
 			return FailedDeleteWallet
 		}
 
-		log.Printf("Successfully deleted wallet save and and cleared the assets folder!\n")
+		log.Printf("INFO: successfully deleted wallet save and and cleared the assets folder\n")
 		return Success
 
 	}
 
-	log.Printf("Logged in successfully as: %s\n", Wallet.GetUsername())
+	log.Printf("INFO: logged in successfully as: %s\n", Wallet.GetUsername())
 
 	//Perform actions based on Flag Values
 	retVal := performOperation(fv, Wallet, BC)
 
 	if retVal != Success {
 		if retVal == UnknownOperation {
-			log.Printf("Unknown operation: %s\n", fv.Operation)
+			log.Printf("WARNING: unknown operation: %s\n", fv.Operation)
 		}
 		return retVal
 	}

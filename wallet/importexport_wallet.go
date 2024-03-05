@@ -25,7 +25,6 @@ func ImportWallet(username string) (*Wallet, error) {
 	exePath, err := os.Executable()
 
 	if err != nil {
-		log.Printf("Error: %s\n", err)
 		return nil, err
 	}
 
@@ -74,7 +73,7 @@ func ImportWallet(username string) (*Wallet, error) {
 	)
 
 	if err != nil {
-		log.Printf("Could not initialize node.\n")
+		log.Printf("ERROR: could not initialize node\n")
 		return nil, err
 	}
 
@@ -95,13 +94,12 @@ func (w *Wallet) ExportWallet() error {
 	exePath, err := os.Executable()
 
 	if err != nil {
-		log.Printf("Error: %s\n", err)
 		return err
 	}
 
 	dir := filepath.Dir(exePath)
 
-	log.Printf("Exporting Wallet state...\n")
+	log.Printf("INFO: exporting Wallet state...\n")
 
 	var walletAssets []string
 
@@ -149,6 +147,6 @@ func (w *Wallet) ExportWallet() error {
 		return &generalerrors.WriteFileFailed{File: path}
 	}
 
-	log.Printf("Wallet state exported successfully!\n")
+	log.Printf("INFO: wallet state exported successfully!\n")
 	return nil
 }

@@ -99,7 +99,7 @@ type FailedToCreateUserDir struct {
 // ======== ERROR FUNCTIONS TO IMPLEMENT THE ERROR INTERFACE ========
 
 func (bcr *BlockCapacityReached) Error() string {
-	return fmt.Sprintf("Block capacity of %d has been reached! Need new block!", bcr.Capacity)
+	return fmt.Sprintf("block capacity of %d has been reached - need new block!", bcr.Capacity)
 }
 
 func (bcr *BlockCapacityReached) Is(target error) bool {
@@ -109,81 +109,81 @@ func (bcr *BlockCapacityReached) Is(target error) bool {
 }
 
 func (rdf *ReadDirFailed) Error() string {
-	return fmt.Sprintf("Failed to read directory: %s", rdf.Dir)
+	return fmt.Sprintf("failed to read directory: %s", rdf.Dir)
 }
 
 func (rff *ReadFileFailed) Error() string {
 	if strings.Contains(rff.File, "bcs.json") {
-		return "There is no save file of the blockchain!"
+		return "there is no save file of the blockchain!"
 	} else if strings.Contains(rff.File, "ws.json") {
-		return "There is no save file of the wallet!"
+		return "there is no save file of the wallet!"
 	}
-	return fmt.Sprintf("Failed to read file: %s", rff.File)
+	return fmt.Sprintf("failed to read file: %s", rff.File)
 }
 
 func (rff *RemoveFileFailed) Error() string {
-	return fmt.Sprintf("Failed to remove file: %s", rff.File)
+	return fmt.Sprintf("failed to remove file: %s", rff.File)
 }
 
 func (dtb *DataTooBig) Error() string {
-	return fmt.Sprintf("\"%s\" - is too big! Maximum length allowed: %d!", dtb.Data, dtb.DataLength)
+	return fmt.Sprintf("\"%s\" - is too big - maximum length allowed: %d!", dtb.Data, dtb.DataLength)
 }
 
 func (wff *WriteFileFailed) Error() string {
-	return fmt.Sprintf("Failed to write file: %s", wff.File)
+	return fmt.Sprintf("failed to write file: %s", wff.File)
 }
 
 func (bcdbe *BlockChainDBEmpty) Error() string {
-	return fmt.Sprintf("There are no files in the BlockChain Database directory: %s!", bcdbe.Dir)
+	return fmt.Sprintf("there are no files in the blockchain database directory: %s!", bcdbe.Dir)
 }
 
 func (bm *BlockMissing) Error() string {
-	return fmt.Sprintf("There is no block with the hash: %s!", bm.BlockHash)
+	return fmt.Sprintf("there is no block with the hash: %s!", bm.BlockHash)
 }
 
 func (w *WalletDBHasItems) Error() string {
-	return fmt.Sprintf("Folder selected for storing wallet assets contains files! Directory: %s", w.Dir)
+	return fmt.Sprintf("folder selected for storing wallet assets contains files - directory: %s", w.Dir)
 }
 
 func (bhd *BlockHashDifferent) Error() string {
-	return fmt.Sprintf("Block hash does not match the computed Root hash!\nComputed hash: %s\nBlock hash: %s",
+	return fmt.Sprintf("block hash does not match the computed root hash!\ncomputed hash: %s\nblock hash: %s",
 		bhd.ComputedHash, bhd.BlockHash)
 }
 
 func (aae *AssetAlreadyExists) Error() string {
-	return fmt.Sprintf("There already is an asset with this name: %s", aae.AssetName)
+	return fmt.Sprintf("there already is an asset with this name: %s", aae.AssetName)
 }
 
 func (ailne *AssetInitialLocationDoesNotExist) Error() string {
-	return fmt.Sprintf("The file path is invalid: %s", ailne.Location)
+	return fmt.Sprintf("the file path is invalid: %s", ailne.Location)
 }
 
 func (aif *AssetIsAFolder) Error() string {
-	return fmt.Sprintf("The location is a folder: %s", aif.Location)
+	return fmt.Sprintf("the location is a folder: %s", aif.Location)
 }
 
 func (utl *UsernameTooLong) Error() string {
-	return fmt.Sprintf("The entered username passes the maximum length of: %d", utl.Length)
+	return fmt.Sprintf("the entered username passes the maximum length of: %d", utl.Length)
 }
 
 func (ufa *UnknownFormat) Error() string {
-	return fmt.Sprintf("Unknown file format! File extension: %s", ufa.FileExt)
+	return fmt.Sprintf("unknown file format - file extension: %s", ufa.FileExt)
 }
 
 func (fe *FailedExport) Error() string {
-	return fmt.Sprintf("Failed to export: %s", fe.Object)
+	return fmt.Sprintf("failed to export: %s", fe.Object)
 }
 
 func (ane *AssetDoesNotExist) Error() string {
-	return fmt.Sprintf("Asset does not exist: %s", ane.AssetName)
+	return fmt.Sprintf("asset does not exist: %s", ane.AssetName)
 }
 
 func (unf *UserNotFound) Error() string {
-	return fmt.Sprintf("No user \"%s\" has been found.", unf.UserName)
+	return fmt.Sprintf("no user \"%s\" has been found.", unf.UserName)
 }
 
 func (fcud *FailedToCreateUserDir) Error() string {
-	return fmt.Sprintf("Cannot create the dir for the user %s", fcud.UserName)
+	return fmt.Sprintf("cannot create the dir for the user %s", fcud.UserName)
 }
 
 // ======== HANDLE ERROR FUNCTION ========
@@ -202,7 +202,7 @@ type AllErrorsExit struct {
 }
 
 func (aee *AllErrorsExit) Error() string {
-	return "Any error will exit the program"
+	return "any error will exit the program"
 }
 
 // HandleError - This function will print the errors given.

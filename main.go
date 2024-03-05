@@ -11,7 +11,7 @@ func main() {
 	fv := cli.InitFlags()
 
 	if fv == nil {
-		log.Printf("Error: Program has failed to parse arguments!\nTry again.\n")
+		log.Printf("ERROR: program has failed to parse arguments!\nTry again.\n")
 		return
 	}
 

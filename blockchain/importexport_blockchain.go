@@ -19,7 +19,7 @@ type blockchainIE struct {
 
 // Lock - will create a file that signals that the blockchain is currently in use.
 func (bc *BlockChain) Lock() error {
-	log.Printf("Locking the blockchain save file.")
+	log.Printf("INFO: locking the blockchain save file.")
 	err := osspecifics.LockFile("bcs.json")
 
 	if err != nil {
@@ -32,7 +32,7 @@ func (bc *BlockChain) Lock() error {
 // Unlock - will remove the lock file, thus signaling that the blockchain is ready to use.
 func (bc *BlockChain) Unlock() {
 	osspecifics.UnlockFile("bcs.json")
-	log.Printf("The blockchain save file has been unlocked.")
+	log.Printf("INFO: the blockchain save file has been unlocked.")
 }
 
 func ImportChain() (*BlockChain, error) {
@@ -93,7 +93,7 @@ func ImportChain() (*BlockChain, error) {
 	bc.mLastBlock = bc.mBlocks[len(bc.mBlocks)-1]
 
 	if osspecifics.IsLocked("bcs.json") {
-		return nil, errors.New("The blockchain save file is locked")
+		return nil, errors.New("the blockchain save file is locked")
 	}
 
 	return bc, nil
@@ -111,7 +111,7 @@ func (bc *BlockChain) ExportChain() error {
 
 	dir := filepath.Dir(exePath)
 
-	log.Printf("Exporting BlockChain state...\n")
+	log.Printf("INFO: exporting blockchain state...\n")
 	bcIE := blockchainIE{
 		DatabaseDir:   bc.mDatabaseDir,
 		LastBlockHash: fmt.Sprintf("%X", bc.mLastBlock.mCurrHash),
@@ -134,13 +134,12 @@ func (bc *BlockChain) ExportChain() error {
 		err = ExportBlock(bc.GetDBLocation(), b)
 
 		if err != nil {
-			log.Printf("Error: Failed to export block!\n")
 			return &generalerrors.FailedExport{Object: "Block"}
 		}
 
 	}
 
-	log.Print("Blockchain state exported successfully!\n")
+	log.Print("INFO: blockchain state exported successfully!\n")
 
 	return nil
 }

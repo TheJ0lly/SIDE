@@ -50,18 +50,16 @@ func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asse
 	lastBlockOldHash := osspecifics.CreatePath(bc.mDatabaseDir, fileName)
 	err := os.Remove(lastBlockOldHash)
 
-	if err != nil {
-		if blockExists {
-			log.Printf("Error: Failed to remove file!\n")
-			return &generalerrors.RemoveFileFailed{File: lastBlockOldHash}
-		}
+	if err != nil && blockExists {
+		log.Printf("ERROR: failed to remove block - %s\n", lastBlockOldHash)
+		return &generalerrors.RemoveFileFailed{File: lastBlockOldHash}
 	}
 
 	b.mCurrHash = ht.RootHash[:]
 	err = ExportBlock(bc.mDatabaseDir, b)
 
 	if err != nil {
-		log.Printf("Error: Failed to export block!\n")
+		log.Printf("ERROR: failed to export block!\n")
 		return &generalerrors.FailedExport{Object: "Block"}
 	}
 

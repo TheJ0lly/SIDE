@@ -48,15 +48,15 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 	defAddrs := getDefaultAddresses(Opt)
 
 	if len(Opt.addrs) == 0 {
-		log.Printf("No addresses have been given, trying the options given...\n")
+		log.Printf("INFO: no addresses have been given - trying the options given...\n")
 
 		if len(defAddrs) == 0 {
-			log.Printf("Auto searching for IPv4 and IPv6 has not been allowed\n")
+			log.Printf("INFO: auto searching for IPv4 and IPv6 has not been allowed\n")
 			return nil, errors.New("cannot create new node")
 		}
 
 	} else {
-		log.Printf("Given addresses: %v\n", Opt.addrs)
+		log.Printf("INFO: given addresses: %v\n", Opt.addrs)
 		//If there are default addresses, we add them together with the defaults, if they are selected
 		defAddrs = append(defAddrs, Opt.addrs...)
 	}
@@ -69,9 +69,7 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 		return nil, err
 	}
 
-	log.Printf("Initializing node with the following addresses: %v\n", h.Addrs())
-
-	log.Printf("Node has been initialized!\n")
+	log.Printf("INFO: node has been initialized with addresses: %v\n", h.Addrs())
 	return h, nil
 }
 
@@ -88,7 +86,7 @@ func SendTo(from host.Host, data []byte, to multiaddr.Multiaddr) error {
 		return err
 	}
 
-	log.Printf("Sending data...\n")
+	log.Printf("sending data...\n")
 	//Write the data len to the stream, to help the "other side" to make enough space for this data.
 
 	//Write the data to the stream
@@ -98,7 +96,7 @@ func SendTo(from host.Host, data []byte, to multiaddr.Multiaddr) error {
 		return err
 	}
 
-	log.Printf("Sent %d bytes over to: %v\n", n, to)
+	log.Printf("sent %d bytes over to: %v\n", n, to)
 
 	return nil
 }

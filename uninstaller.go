@@ -13,12 +13,12 @@ import (
 
 func main() {
 
-	log.Printf("Uninstalling BlockChain!\n")
+	log.Printf("INFO: uninstalling blockchain!\n")
 
 	exePath, err := os.Executable()
 
 	if err != nil {
-		log.Printf("Error: %s\n", err)
+		generalerrors.HandleError(generalerrors.ERROR, err)
 		return
 	}
 
@@ -35,14 +35,13 @@ func main() {
 			generalerrors.HandleError(generalerrors.ERROR, err, err)
 		}
 
-		log.Printf("Deleting all wallets and their folder...\n")
+		log.Printf("INFO: deleting all wallets and their folder...\n")
 	}
 
 	files, err := os.ReadDir(dir)
 
 	for _, f := range files {
 		if f.IsDir() {
-			//if !osspecifics.IsExecutable(f.Name()) && f.Name() != "bcs.json" {
 			Wallet, err := wallet.ImportWallet(f.Name())
 
 			if err != nil {
@@ -50,7 +49,8 @@ func main() {
 				continue
 			}
 
-			log.Printf("Clearing wallet folder...\n")
+			log.Printf("INFO: clearing wallet folder - %s\n", Wallet.GetUsername())
+
 			err = osspecifics.ClearFolder(Wallet.GetDBLocation())
 
 			if err != nil {
@@ -88,5 +88,5 @@ func main() {
 		generalerrors.HandleError(generalerrors.ERROR, err)
 	}
 
-	log.Printf("Uninstall successful\n")
+	log.Printf("INFO: uninstall successful\n")
 }

@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
-	"strings"
 )
 
 var PathSep string
@@ -131,21 +130,6 @@ func ClearFolder(folder string) error {
 	}
 
 	return nil
-}
-
-func IsExecutable(filepath string) bool {
-	if runtime.GOOS == "windows" {
-		return strings.Contains(filepath, ".exe")
-	} else {
-		fi, err := os.Stat(filepath)
-
-		if err != nil {
-			log.Printf("Error when finding if %s is executable: %s\n", GetFileName(filepath), err.Error())
-			return false
-		}
-		//Check permission bits to tell if a file is executable for any
-		return fi.Mode()&0111 != 0
-	}
 }
 
 func RemoveUninstaller(dir string) error {
