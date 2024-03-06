@@ -1,0 +1,76 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"github.com/TheJ0lly/GoChain/blockchain"
+	"github.com/TheJ0lly/GoChain/generalerrors"
+	"github.com/TheJ0lly/GoChain/wallet"
+	"github.com/libp2p/go-libp2p/core/network"
+	"log"
+	"os"
+	"os/signal"
+)
+
+var W *wallet.Wallet
+var BC *blockchain.BlockChain
+
+func displayHelp() {
+	fmt.Printf("Usage: <exec> -u <string>\n\n")
+	fmt.Printf("  -u  \n      Choose the user for which the service will run.\n")
+}
+
+func main() {
+	User := flag.String("u", "", "")
+
+	flag.Usage = displayHelp
+
+	flag.Parse()
+
+	if *User == "" {
+		flag.Usage()
+		return
+	}
+
+	var err error
+
+	log.Printf("INFO: getting wallet %s\n", *User)
+	W, err = wallet.ImportWallet(*User)
+
+	if err != nil {
+		generalerrors.HandleError(generalerrors.ERROR, err)
+		return
+	}
+
+	log.Printf("INFO: getting the blockchain\n")
+	BC, err = blockchain.ImportChain()
+
+	if err != nil {
+		generalerrors.HandleError(generalerrors.ERROR, err)
+		return
+	}
+
+	cancel := make(chan os.Signal, 1)
+
+	signal.Notify(cancel)
+
+	go StartListener()
+
+	select {
+	case s := <-cancel:
+		fmt.Printf("\nService stopped: %v\n", s.String())
+	}
+
+}
+
+func ListenHandler(s network.Stream) {
+	log.Printf("INFO: received new stream - %s\n", s.ID())
+
+}
+
+func StartListener() {
+	fullAddr := W.GetHostAddress()
+	log.Printf("INFO: listening on - %s\n", fullAddr)
+
+	W.GetHost().SetStreamHandler("LISTEN", ListenHandler)
+}

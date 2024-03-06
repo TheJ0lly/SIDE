@@ -167,3 +167,14 @@ func (w *Wallet) GetDBLocation() string {
 func (w *Wallet) GetHost() core.Host {
 	return w.mHost
 }
+
+func (w *Wallet) GetPrivateKey() rsa.PrivateKey { return w.mPrivateKey }
+
+func (w *Wallet) GetHostAddress() string {
+	//hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", w.mHost.ID()))
+
+	addr := w.mHost.Addrs()[1]
+	//return addr.Encapsulate(hostAddr).String()
+	return addr.String()
+
+}
