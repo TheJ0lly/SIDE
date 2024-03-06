@@ -36,6 +36,9 @@ if os_name == "Windows":
     print("Installing SIDE_Uninstaller...")
     os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Uninstaller.exe uninstaller.go")
 
+    print("Installing SIDE_Service...")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Service.exe service.go")
+
     print("Installing SIDE...")
     os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE.exe main.go")
 
@@ -57,6 +60,9 @@ else:
 
     print("Installing SIDE_Uninstaller...")
     os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Uninstaller uninstaller.go")
+
+    print("Installing SIDE_Service...")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Service service.go")
 
     print("Installing SIDE...")
     os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE main.go")
