@@ -7,6 +7,8 @@ import (
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p/core"
+	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
 	"path/filepath"
@@ -19,6 +21,7 @@ type walletIE struct {
 	DatabaseDir string         `json:"DatabaseDir"`
 	Assets      []string       `json:"Assets"`
 	Addresses   []string       `json:"Addresses"`
+	KnownHosts  []string       `json:"KnownHosts"`
 }
 
 func ImportWallet(username string) (*Wallet, error) {
@@ -77,6 +80,18 @@ func ImportWallet(username string) (*Wallet, error) {
 		return nil, err
 	}
 
+	var KnownHosts []core.Multiaddr
+
+	for _, kh := range wie.KnownHosts {
+		ma, err := multiaddr.NewMultiaddr(kh)
+
+		if err != nil {
+			return nil, err
+		}
+
+		KnownHosts = append(KnownHosts, ma)
+	}
+
 	w := &Wallet{
 		mUsername:    wie.Username,
 		mPassword:    wie.Password,
@@ -85,6 +100,7 @@ func ImportWallet(username string) (*Wallet, error) {
 		mDatabaseDir: wie.DatabaseDir,
 		mAssets:      assetSlice,
 		mHost:        host,
+		mKnownHosts:  KnownHosts,
 	}
 
 	return w, nil
@@ -107,10 +123,16 @@ func (w *Wallet) ExportWallet() error {
 		walletAssets = append(walletAssets, a.GetName())
 	}
 
-	var MAString []string
+	var Addresses []string
 
 	for _, a := range w.mHost.Addrs() {
-		MAString = append(MAString, a.String())
+		Addresses = append(Addresses, a.String())
+	}
+
+	var KnownHosts []string
+
+	for _, kh := range w.mKnownHosts {
+		KnownHosts = append(KnownHosts, kh.String())
 	}
 
 	wie := walletIE{
@@ -119,7 +141,8 @@ func (w *Wallet) ExportWallet() error {
 		PrivateKey:  w.mPrivateKey,
 		DatabaseDir: w.mDatabaseDir,
 		Assets:      walletAssets,
-		Addresses:   MAString,
+		Addresses:   Addresses,
+		KnownHosts:  KnownHosts,
 	}
 
 	bytesToWrite, err := json.MarshalIndent(wie, "", "    ")

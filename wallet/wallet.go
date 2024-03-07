@@ -28,6 +28,7 @@ type Wallet struct {
 	mDatabaseDir string
 	mAssets      []*asset.Asset
 	mHost        core.Host
+	mKnownHosts  []core.Multiaddr
 }
 
 // CreateNewWallet - This function will create a wallet.
@@ -50,7 +51,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 
 	passBytes := sha256.Sum256([]byte(password))
 
-	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: *privateKey, mPublicKey: privateKey.PublicKey, mAssets: nil, mDatabaseDir: dbLoc, mHost: host}
+	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: *privateKey, mPublicKey: privateKey.PublicKey, mAssets: nil, mDatabaseDir: dbLoc, mHost: host, mKnownHosts: nil}
 
 	return w, nil
 }
