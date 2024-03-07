@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -9,6 +10,8 @@ import (
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/howeyc/gopass"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/peerstore"
 	"io/fs"
 	"log"
 	"os"
@@ -25,6 +28,7 @@ const (
 	AddAssetFailed
 	RemoveAssetFailed
 	AddNodeFailed
+	RequestAssetFailed
 	WrongPass
 	FailedGetBC
 	FailedDeleteWallet
@@ -42,6 +46,7 @@ const (
 	ViewAssets
 	AddNode
 	ViewNodes
+	RequestAsset
 )
 
 type FlagValues struct {
@@ -255,6 +260,14 @@ func getOpArgs(op OPERATION) []string {
 
 	case ViewNodes: // there is nothing to gather
 
+	case RequestAsset:
+		operation = "Request"
+		for i := 0; i < len(args); i++ {
+			if args[i] == operation && i < len(args)-1 {
+				opArgs = append(opArgs, args[i+1])
+				break
+			}
+		}
 	}
 
 	return opArgs
@@ -388,6 +401,52 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		log.Printf("INFO: known addresses:")
 		for _, a := range addresses {
 			fmt.Printf("  %s\n", a.String())
+		}
+
+		return Success
+
+	case "Request":
+		args := getOpArgs(RequestAsset)
+
+		if len(args) != 1 {
+			log.Printf("ERROR: operation Request did not receive the right amount of arguments\n")
+			return WrongNumberOfArgsGivenToOp
+		}
+
+		addresses := Wallet.GetNodesAddresses()
+
+		if addresses == nil {
+			log.Printf("INFO: no known addresses - aborting request for %s\n", args[0])
+			return RequestAssetFailed
+		}
+
+		ha := Wallet.GetHost()
+
+		for _, addr := range addresses {
+			info, err := peer.AddrInfoFromP2pAddr(addr)
+
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+			}
+			ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
+			log.Printf("INFO: trying to connect to %s\n", addr.String())
+
+			s, err := ha.NewStream(context.Background(), info.ID, "LISTEN")
+
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+				return RequestAssetFailed
+			}
+
+			_, err = s.Write([]byte(fmt.Sprintf("Hello from %s\n", "Matei")))
+
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+				log.Printf("INFO: moving to the next address\n")
+				continue
+			}
+
+			log.Printf("INFO: request executed successfully\n")
 		}
 
 		return Success
