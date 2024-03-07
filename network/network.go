@@ -68,6 +68,5 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 		return nil, err
 	}
 
-	log.Printf("INFO: node has been initialized with addresses: %v\n", h.Addrs())
 	return h, nil
 }

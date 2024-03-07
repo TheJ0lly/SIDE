@@ -391,10 +391,12 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		return Success
 
 	case "ViewNodes":
+		log.Printf("INFO: host address - %s\n", Wallet.GetHostAddress())
+
 		addresses := Wallet.GetNodesAddresses()
 
 		if addresses == nil {
-			log.Printf("INFO: there are no known addresses to show\n")
+			log.Printf("INFO: there are no other addresses known\n")
 			return Success
 		}
 

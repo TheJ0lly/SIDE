@@ -10,6 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/multiformats/go-multiaddr"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -52,8 +53,8 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 	}
 
 	passBytes := sha256.Sum256([]byte(password))
-
 	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: privateKey, mPublicKey: privateKey.GetPublic(), mAssets: nil, mDatabaseDir: dbLoc, mHost: host, mKnownHosts: nil}
+	log.Printf("INFO: node has been initialized with address: %v\n", w.GetHostAddress())
 
 	return w, nil
 }
