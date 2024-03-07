@@ -72,7 +72,7 @@ func ListenHandler(s network.Stream) {
 
 	var stor = make([]byte, 200)
 
-	log.Printf("INFO: reading from stream")
+	log.Printf("INFO: reading from stream\n")
 	_, err := s.Read(stor)
 
 	//_, err := io.ReadFull(bufio.NewReader(s), stor)
