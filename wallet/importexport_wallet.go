@@ -15,13 +15,13 @@ import (
 )
 
 type walletIE struct {
-	Username    string         `json:"Username"`
-	Password    [32]byte       `json:"Password"`
-	PrivateKey  crypto.PrivKey `json:"PrivateKey"`
-	DatabaseDir string         `json:"DatabaseDir"`
-	Assets      []string       `json:"Assets"`
-	Addresses   []string       `json:"Addresses"`
-	KnownHosts  []string       `json:"KnownHosts"`
+	Username    string   `json:"Username"`
+	Password    [32]byte `json:"Password"`
+	PrivateKey  []byte   `json:"PrivateKey"`
+	DatabaseDir string   `json:"DatabaseDir"`
+	Assets      []string `json:"Assets"`
+	Addresses   []string `json:"Addresses"`
+	KnownHosts  []string `json:"KnownHosts"`
 }
 
 func ImportWallet(username string) (*Wallet, error) {
@@ -71,8 +71,15 @@ func ImportWallet(username string) (*Wallet, error) {
 		assetSlice = append(assetSlice, newAsset)
 	}
 
+	PrivKey, err := crypto.UnmarshalPrivateKey(wie.PrivateKey)
+
+	if err != nil {
+		return nil, err
+	}
+
 	host, err := libp2p.New(
 		libp2p.ListenAddrStrings(wie.Addresses...),
+		libp2p.Identity(PrivKey),
 	)
 
 	if err != nil {
@@ -95,8 +102,8 @@ func ImportWallet(username string) (*Wallet, error) {
 	w := &Wallet{
 		mUsername:    wie.Username,
 		mPassword:    wie.Password,
-		mPublicKey:   wie.PrivateKey.GetPublic(),
-		mPrivateKey:  wie.PrivateKey,
+		mPublicKey:   PrivKey.GetPublic(),
+		mPrivateKey:  PrivKey,
 		mDatabaseDir: wie.DatabaseDir,
 		mAssets:      assetSlice,
 		mHost:        host,
@@ -135,10 +142,16 @@ func (w *Wallet) ExportWallet() error {
 		KnownHosts = append(KnownHosts, kh.String())
 	}
 
+	b, err := crypto.MarshalPrivateKey(w.mPrivateKey)
+
+	if err != nil {
+		return err
+	}
+
 	wie := walletIE{
 		Username:    w.mUsername,
 		Password:    w.mPassword,
-		PrivateKey:  w.mPrivateKey,
+		PrivateKey:  b,
 		DatabaseDir: w.mDatabaseDir,
 		Assets:      walletAssets,
 		Addresses:   Addresses,
