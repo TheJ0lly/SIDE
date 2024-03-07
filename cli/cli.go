@@ -41,6 +41,7 @@ const (
 	RemoveAsset
 	ViewAssets
 	AddNode
+	ViewNodes
 )
 
 type FlagValues struct {
@@ -72,6 +73,7 @@ func displayHelp() {
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
 	fmt.Print("        AddNode <Address in MultiAddress format:string>\n")
+	fmt.Print("        ViewNodes\n")
 }
 
 // InitFlags - will initialize the flags that will be used to execute the client.
@@ -240,7 +242,7 @@ func getOpArgs(op OPERATION) []string {
 				break
 			}
 		}
-	case ViewAssets: //There is nothing to gather
+	case ViewAssets: // there is nothing to gather
 
 	case AddNode:
 		operation = "AddNode"
@@ -250,6 +252,9 @@ func getOpArgs(op OPERATION) []string {
 				break
 			}
 		}
+
+	case ViewNodes: // there is nothing to gather
+
 	}
 
 	return opArgs
@@ -371,9 +376,23 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 
 		log.Printf(fmt.Sprintf("INFO: address %s has been successfully added\n", ma.String()))
 		return Success
+
+	case "ViewNodes":
+		addresses := Wallet.GetNodesAddresses()
+
+		if addresses == nil {
+			log.Printf("INFO: there are no known addresses to show\n")
+			return Success
+		}
+
+		log.Printf("INFO: known addresses:")
+		for _, a := range addresses {
+			fmt.Printf("  %s\n", a.String())
+		}
+
+		return Success
 	default:
 		return UnknownOperation
-
 	}
 }
 

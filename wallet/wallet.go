@@ -179,6 +179,10 @@ func (w *Wallet) ConfirmPassword(pass string) bool {
 	return w.mPassword == passBytes
 }
 
+func (w *Wallet) GetNodesAddresses() []multiaddr.Multiaddr {
+	return w.mKnownHosts
+}
+
 func (w *Wallet) GetDBLocation() string {
 	return w.mDatabaseDir
 }
