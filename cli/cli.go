@@ -422,12 +422,17 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 
 		ha := Wallet.GetHost()
 
+		ok := false
+
 		for _, addr := range addresses {
 			info, err := peer.AddrInfoFromP2pAddr(addr)
 
 			if err != nil {
 				log.Printf("ERROR: %s\n", err)
+				log.Printf("INFO: moving to the next address\n")
+				continue
 			}
+
 			ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
 			log.Printf("INFO: trying to connect to %s\n", addr.String())
 
@@ -435,7 +440,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 
 			if err != nil {
 				log.Printf("ERROR: %s\n", err)
-				return RequestAssetFailed
+				log.Printf("INFO: moving to the next address\n")
 			}
 
 			_, err = s.Write([]byte(fmt.Sprintf("Hello from %s\n", "Matei")))
@@ -447,9 +452,15 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			}
 
 			log.Printf("INFO: request executed successfully\n")
+			ok = true
 		}
 
-		return Success
+		if ok {
+			return Success
+		} else {
+			return RequestAssetFailed
+		}
+
 	default:
 		return UnknownOperation
 	}

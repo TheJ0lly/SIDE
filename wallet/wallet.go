@@ -2,13 +2,13 @@ package wallet
 
 import (
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p/core"
+	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/multiformats/go-multiaddr"
 	"os"
 	"path/filepath"
@@ -19,15 +19,14 @@ import (
 
 const (
 	//64 bits (Source name) + 8 bits (Space) + 64 bits (Destination name) + 8 bits (Space) + 64 bits (Asset Name) + 8 bits (Empty/NULL)
-	keyBitSize        = 216
 	usernameMaxLength = 8
 )
 
 type Wallet struct {
 	mUsername    string
 	mPassword    [32]byte
-	mPublicKey   rsa.PublicKey
-	mPrivateKey  rsa.PrivateKey
+	mPublicKey   crypto.PubKey
+	mPrivateKey  crypto.PrivKey
 	mDatabaseDir string
 	mAssets      []*asset.Asset
 	mHost        core.Host
@@ -40,13 +39,13 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 		return nil, &generalerrors.UsernameTooLong{Length: usernameMaxLength}
 	}
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, keyBitSize)
+	privateKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
 
 	if err != nil {
 		return nil, err
 	}
 
-	host, err := network.CreateNewNode(network.CreateNodeOptions(IP4, IP6, Addresses...))
+	host, err := network.CreateNewNode(network.CreateNodeOptions(privateKey, IP4, IP6, Addresses...))
 
 	if err != nil {
 		return nil, err
@@ -54,7 +53,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 
 	passBytes := sha256.Sum256([]byte(password))
 
-	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: *privateKey, mPublicKey: privateKey.PublicKey, mAssets: nil, mDatabaseDir: dbLoc, mHost: host, mKnownHosts: nil}
+	w := &Wallet{mUsername: username, mPassword: passBytes, mPrivateKey: privateKey, mPublicKey: privateKey.GetPublic(), mAssets: nil, mDatabaseDir: dbLoc, mHost: host, mKnownHosts: nil}
 
 	return w, nil
 }
@@ -191,13 +190,12 @@ func (w *Wallet) GetHost() core.Host {
 	return w.mHost
 }
 
-func (w *Wallet) GetPrivateKey() rsa.PrivateKey { return w.mPrivateKey }
+func (w *Wallet) GetPrivateKey() crypto.PrivKey { return w.mPrivateKey }
 
 func (w *Wallet) GetHostAddress() string {
-	//hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", w.mHost.ID()))
+	hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", w.mHost.ID()))
 
 	addr := w.mHost.Addrs()[1]
-	//return addr.Encapsulate(hostAddr).String()
-	return addr.String()
+	return addr.Encapsulate(hostAddr).String()
 
 }
