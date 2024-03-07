@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p/core/network"
-	"io"
 	"log"
 )
 
@@ -74,7 +72,10 @@ func ListenHandler(s network.Stream) {
 
 	var stor = make([]byte, 200)
 
-	_, err := io.ReadFull(bufio.NewReader(s), stor)
+	log.Printf("INFO: reading from stream")
+	_, err := s.Read(stor)
+
+	//_, err := io.ReadFull(bufio.NewReader(s), stor)
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)

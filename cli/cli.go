@@ -448,7 +448,10 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 				continue
 			}
 
-			_, err = s.Write([]byte(fmt.Sprintf("Hello from %s\n", "Matei")))
+			text := fmt.Sprintf("Hello from %s", "Matei")
+			log.Printf("INFO: sending - %s\n", text)
+
+			_, err = s.Write([]byte(text))
 
 			if err != nil {
 				log.Printf("ERROR: %s\n", err)
