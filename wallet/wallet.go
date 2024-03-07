@@ -200,3 +200,9 @@ func (w *Wallet) GetHostAddress() string {
 	return addr.Encapsulate(hostAddr).String()
 
 }
+
+func GetHostAddressFromConnection(conn core.Conn) string {
+	hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", conn.RemotePeer()))
+
+	return conn.RemoteMultiaddr().Encapsulate(hostAddr).String()
+}

@@ -68,7 +68,7 @@ func main() {
 }
 
 func ListenHandler(s network.Stream) {
-	log.Printf("INFO: received new stream - %s\n", s.ID())
+	log.Printf("INFO: received new stream - %s\n", wallet.GetHostAddressFromConnection(s.Conn()))
 
 	var stor = make([]byte, 200)
 
