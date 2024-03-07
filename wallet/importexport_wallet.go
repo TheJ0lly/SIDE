@@ -1,13 +1,13 @@
 package wallet
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
+	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
@@ -17,7 +17,7 @@ import (
 type walletIE struct {
 	Username    string         `json:"Username"`
 	Password    [32]byte       `json:"Password"`
-	PrivateKey  rsa.PrivateKey `json:"PrivateKey"`
+	PrivateKey  crypto.PrivKey `json:"PrivateKey"`
 	DatabaseDir string         `json:"DatabaseDir"`
 	Assets      []string       `json:"Assets"`
 	Addresses   []string       `json:"Addresses"`
@@ -95,7 +95,7 @@ func ImportWallet(username string) (*Wallet, error) {
 	w := &Wallet{
 		mUsername:    wie.Username,
 		mPassword:    wie.Password,
-		mPublicKey:   wie.PrivateKey.PublicKey,
+		mPublicKey:   wie.PrivateKey.GetPublic(),
 		mPrivateKey:  wie.PrivateKey,
 		mDatabaseDir: wie.DatabaseDir,
 		mAssets:      assetSlice,
