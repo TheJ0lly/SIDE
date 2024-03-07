@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
@@ -8,8 +9,6 @@ import (
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p/core/network"
 	"log"
-	"os"
-	"os/signal"
 )
 
 var W *wallet.Wallet
@@ -49,16 +48,21 @@ func main() {
 		generalerrors.HandleError(generalerrors.ERROR, err)
 		return
 	}
+	//
+	//cancel := make(chan os.Signal, 1)
+	//
+	//signal.Notify(cancel)
 
-	cancel := make(chan os.Signal, 1)
+	back := context.Background()
+	go StartListener(back)
 
-	signal.Notify(cancel)
-
-	go StartListener()
+	//select {
+	//case s := <-cancel:
+	//	fmt.Printf("\nService stopped: %v\n", s.String())
+	//}
 
 	select {
-	case s := <-cancel:
-		fmt.Printf("\nService stopped: %v\n", s.String())
+	case <-back.Done():
 	}
 
 }
@@ -68,7 +72,7 @@ func ListenHandler(s network.Stream) {
 
 }
 
-func StartListener() {
+func StartListener(ctx context.Context) {
 	fullAddr := W.GetHostAddress()
 	log.Printf("INFO: listening on - %s\n", fullAddr)
 

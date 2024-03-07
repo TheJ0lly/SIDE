@@ -443,6 +443,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			if err != nil {
 				log.Printf("ERROR: %s\n", err)
 				log.Printf("INFO: moving to the next address\n")
+				continue
 			}
 
 			_, err = s.Write([]byte(fmt.Sprintf("Hello from %s\n", "Matei")))
