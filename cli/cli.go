@@ -10,6 +10,7 @@ import (
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/howeyc/gopass"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/peerstore"
 	"io/fs"
@@ -425,6 +426,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		ha := Wallet.GetHost()
 
 		ok := false
+		var s network.Stream
 
 		for _, addr := range addresses {
 			info, err := peer.AddrInfoFromP2pAddr(addr)
@@ -438,7 +440,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
 			log.Printf("INFO: trying to connect to %s\n", addr.String())
 
-			s, err := ha.NewStream(context.Background(), info.ID, "LISTEN")
+			s, err = ha.NewStream(context.Background(), info.ID, "LISTEN")
 
 			if err != nil {
 				log.Printf("ERROR: %s\n", err)
@@ -454,8 +456,29 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 				continue
 			}
 
+			resp := make([]byte, 5)
+
+			_, err = s.Read(resp)
+
+			if err != nil {
+				log.Printf("ERROR: %s\n")
+				ok = false
+				continue
+			}
+
+			log.Printf("INFO: received - %s\n", resp)
+
 			log.Printf("INFO: request executed successfully\n")
 			ok = true
+			break
+		}
+
+		log.Printf("INFO: closing the network stream\n")
+		err := s.Close()
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			ok = false
 		}
 
 		if ok {

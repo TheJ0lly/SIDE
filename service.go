@@ -82,12 +82,20 @@ func ListenHandler(s network.Stream) {
 	}
 
 	log.Printf("INFO: received - %s\n", stor)
+
+	_, err = s.Write([]byte("DONE"))
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+	}
+
 	log.Printf("INFO: closing stream - %s\n", s.ID())
 	err = s.Close()
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
 	}
+
 	return
 }
 
