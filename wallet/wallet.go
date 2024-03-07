@@ -4,9 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"errors"
+	"fmt"
 	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p/core"
+	"github.com/multiformats/go-multiaddr"
 	"os"
 	"path/filepath"
 
@@ -139,6 +142,21 @@ func (w *Wallet) ViewAssets() []asset.Asset {
 	}
 
 	return assetSlice
+}
+
+func (w *Wallet) AddNode(address string) (multiaddr.Multiaddr, error) {
+	ma, err := multiaddr.NewMultiaddr(address)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if w.checkIfAddrExists(ma) {
+		return nil, errors.New(fmt.Sprintf("the address %s is already added", ma.String()))
+	}
+
+	w.mKnownHosts = append(w.mKnownHosts, ma)
+	return ma, nil
 }
 
 func (w *Wallet) GetAsset(assetName string) (*asset.Asset, error) {

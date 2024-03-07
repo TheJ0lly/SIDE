@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"github.com/TheJ0lly/GoChain/asset"
+	"github.com/multiformats/go-multiaddr"
 )
 
 // This function check if the asset exists based on its name.
@@ -24,4 +25,13 @@ func (w *Wallet) getAsset(assetName string) *asset.Asset {
 	}
 
 	return nil
+}
+
+func (w *Wallet) checkIfAddrExists(ma multiaddr.Multiaddr) bool {
+	for _, ad := range w.mKnownHosts {
+		if ad.String() == ma.String() {
+			return true
+		}
+	}
+	return false
 }

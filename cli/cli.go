@@ -24,7 +24,7 @@ const (
 	WrongNumberOfArgsGivenToOp
 	AddAssetFailed
 	RemoveAssetFailed
-	SendFailed
+	AddNodeFailed
 	WrongPass
 	FailedGetBC
 	FailedDeleteWallet
@@ -40,7 +40,7 @@ const (
 	AddAsset OPERATION = iota
 	RemoveAsset
 	ViewAssets
-	Send
+	AddNode
 )
 
 type FlagValues struct {
@@ -64,14 +64,14 @@ func displayHelp() {
 	fmt.Print("  -d             \n      Delete the wallet.\n")
 	fmt.Print("  -ip6           \n      Allow the auto-search for available IPv6 addresses when creating the wallet.\n")
 	fmt.Print("  -ip4           \n      Allow the auto-search for available IPv4 addresses when creating the wallet.\n")
-	fmt.Print("  -a <string(s)>\n      Give the address(es) to listen to when creating a new wallet.\n")
+	fmt.Print("  -a <string(s)> \n      Give the address(es) to listen to when creating a new wallet.\n")
 	fmt.Print("        Example: (/ip4/192.168.1.1/tcp/8080)\n")
 	fmt.Print("        Use address 192.168.1.1(IPv4) on port 8080 to handle a TCP connection\n")
 	fmt.Print("  -op <string>   \n      Input the name of the op you want to perform:\n")
 	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
-	fmt.Print("        Send <Asset Name:string> <Peer address:string>\n")
+	fmt.Print("        AddNode <Address in MultiAddress format:string>\n")
 }
 
 // InitFlags - will initialize the flags that will be used to execute the client.
@@ -242,12 +242,11 @@ func getOpArgs(op OPERATION) []string {
 		}
 	case ViewAssets: //There is nothing to gather
 
-	case Send:
-		operation = "Send"
+	case AddNode:
+		operation = "AddNode"
 		for i := 0; i < len(args); i++ {
-			if args[i] == operation && i < len(args)-2 {
+			if args[i] == operation && i < len(args)-1 {
 				opArgs = append(opArgs, args[i+1])
-				opArgs = append(opArgs, args[i+2])
 				break
 			}
 		}
@@ -354,6 +353,23 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			fmt.Print("\n")
 		}
 
+		return Success
+	case "AddNode":
+		args := getOpArgs(AddNode)
+
+		if len(args) != 1 {
+			log.Printf("ERROR: operation AddNode did not receive the right amount of arguments\n")
+			return WrongNumberOfArgsGivenToOp
+		}
+
+		ma, err := Wallet.AddNode(args[0])
+
+		if err != nil {
+			generalerrors.HandleError(generalerrors.ERROR, err)
+			return AddNodeFailed
+		}
+
+		log.Printf(fmt.Sprintf("INFO: address %s has been successfully added\n", ma.String()))
 		return Success
 	default:
 		return UnknownOperation
