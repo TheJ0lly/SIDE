@@ -448,7 +448,9 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 				continue
 			}
 
-			text := fmt.Sprintf("Hello from %s", "Matei")
+			log.Printf("INFO: connected successfully to %s\n", addr.String())
+
+			text := fmt.Sprintf("Hello from %s", "Ana")
 			log.Printf("INFO: sending - %s\n", text)
 
 			_, err = s.Write([]byte(text))
@@ -460,7 +462,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			}
 
 			resp := make([]byte, 5)
-
+			log.Printf("INFO: waiting for response\n")
 			_, err = s.Read(resp)
 
 			if err != nil {
