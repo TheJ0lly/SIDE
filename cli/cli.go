@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
-	"github.com/TheJ0lly/GoChain/network"
+	"github.com/TheJ0lly/GoChain/netutils"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/howeyc/gopass"
@@ -413,7 +413,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		ok, as := network.MakeRequest(Wallet, args[0])
+		ok, as := netutils.MakeRequest(Wallet, args[0])
 
 		if ok {
 			Wallet.AddAssetFromNode(as)

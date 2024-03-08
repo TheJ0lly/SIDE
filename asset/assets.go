@@ -65,6 +65,10 @@ func (a *Asset) GetAssetBytes() []byte {
 	return a.mData
 }
 
+func (a *Asset) GetAssetSize() int {
+	return len(a.mData)
+}
+
 func (a *Asset) PrintInfo() {
 	var Type string
 

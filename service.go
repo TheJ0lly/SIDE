@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
+	"github.com/TheJ0lly/GoChain/netutils"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p/core/network"
 	"log"
+	"strconv"
 )
 
 var W *wallet.Wallet
@@ -33,7 +35,7 @@ func main() {
 
 	var err error
 
-	log.Printf("INFO: getting wallet %s\n", *User)
+	log.Printf("INFO: getting wallet %s address\n", *User)
 	W, err = wallet.ImportWallet(*User)
 
 	if err != nil {
@@ -48,18 +50,9 @@ func main() {
 		generalerrors.HandleError(generalerrors.ERROR, err)
 		return
 	}
-	//
-	//cancel := make(chan os.Signal, 1)
-	//
-	//signal.Notify(cancel)
 
 	back := context.Background()
 	go StartListener(back)
-
-	//select {
-	//case s := <-cancel:
-	//	fmt.Printf("\nService stopped: %v\n", s.String())
-	//}
 
 	select {
 	case <-back.Done():
@@ -70,12 +63,18 @@ func main() {
 func ListenHandler(s network.Stream) {
 	log.Printf("INFO: received new stream - %s\n", wallet.GetHostAddressFromConnection(s.Conn()))
 
+	defer func(s network.Stream) {
+		log.Printf("INFO: closing stream - %s\n", s.ID())
+		err := s.Close()
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+		}
+	}(s)
+
 	var stor = make([]byte, 200)
 
 	log.Printf("INFO: reading from stream\n")
 	_, err := s.Read(stor)
-
-	//_, err := io.ReadFull(bufio.NewReader(s), stor)
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
@@ -83,18 +82,48 @@ func ListenHandler(s network.Stream) {
 	}
 
 	log.Printf("INFO: received - %s\n", stor)
+	log.Printf("INFO: searching if %s has %s", W.GetUsername(), stor)
 
-	_, err = s.Write([]byte("DONE"))
+	assetName := netutils.ConvertBytesToString(stor)
+
+	as, err := W.GetAsset(assetName)
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
+		_, err := s.Write([]byte("-1"))
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return
+		}
 	}
 
-	log.Printf("INFO: closing stream - %s\n", s.ID())
-	err = s.Close()
+	log.Printf("INFO: asset found - sending size\n")
+	_, err = s.Write([]byte(strconv.Itoa(as.GetAssetSize())))
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	log.Printf("INFO: waiting for ready signal\n")
+	_, err = s.Read(stor)
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	if netutils.ConvertBytesToString(stor) == "READY" {
+		log.Printf("INFO: ready signal recieved - sending bytes\n")
+		_, err = s.Write(as.GetAssetBytes())
+
+		if err != nil {
+			log.Printf("ERROR: failed to send bytes - %s\n", err)
+			return
+		}
+
+		log.Printf("INFO: bytes sent successfully\n")
 	}
 
 	return
@@ -104,5 +133,5 @@ func StartListener(ctx context.Context) {
 	fullAddr := W.GetHostAddress()
 	log.Printf("INFO: listening on - %s\n", fullAddr)
 
-	W.GetHost().SetStreamHandler("LISTEN", ListenHandler)
+	W.GetHost().SetStreamHandler("REQUEST", ListenHandler)
 }

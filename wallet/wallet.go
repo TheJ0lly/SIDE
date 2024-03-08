@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"github.com/TheJ0lly/GoChain/network"
+	"github.com/TheJ0lly/GoChain/netutils"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -46,7 +46,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 		return nil, err
 	}
 
-	host, err := network.CreateNewNode(network.CreateNodeOptions(privateKey, IP4, IP6, Addresses...))
+	host, err := netutils.CreateNewNode(netutils.CreateNodeOptions(privateKey, IP4, IP6, Addresses...))
 
 	if err != nil {
 		return nil, err

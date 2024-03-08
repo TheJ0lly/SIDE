@@ -1,4 +1,4 @@
-package network
+package netutils
 
 import (
 	"context"
@@ -103,7 +103,7 @@ func MakeRequest(W *wallet.Wallet, assetName string) (bool, *asset.Asset) {
 		ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
 		log.Printf("INFO: trying to connect to %s\n", addr.String())
 
-		s, err = ha.NewStream(context.Background(), info.ID, "LISTEN")
+		s, err = ha.NewStream(context.Background(), info.ID, "REQUEST")
 
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
@@ -154,7 +154,7 @@ func MakeRequest(W *wallet.Wallet, assetName string) (bool, *asset.Asset) {
 		break
 	}
 
-	log.Printf("INFO: closing the network stream\n")
+	log.Printf("INFO: closing the netutils stream\n")
 	err := s.Close()
 
 	if err != nil {
