@@ -106,6 +106,7 @@ func ListenHandler(s network.Stream) {
 		return
 	}
 
+	stor = make([]byte, 10)
 	log.Printf("INFO: waiting for ready signal\n")
 	_, err = s.Read(stor)
 
@@ -114,7 +115,10 @@ func ListenHandler(s network.Stream) {
 		return
 	}
 
-	if netutils.ConvertBytesToString(stor) == "READY" {
+	resp := netutils.ConvertBytesToString(stor)
+
+	log.Printf("INFO: received signal - %s\n", resp)
+	if resp == "READY" {
 		log.Printf("INFO: ready signal recieved - sending bytes\n")
 		_, err = s.Write(as.GetAssetBytes())
 

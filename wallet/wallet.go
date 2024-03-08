@@ -105,8 +105,15 @@ func (w *Wallet) AddAssetFromLocal(assetName string, fileLocation string) (*asse
 	return assetToAdd, nil
 }
 
-func (w *Wallet) AddAssetFromNode(as *asset.Asset) {
+func (w *Wallet) AddAssetFromNode(as *asset.Asset) (*asset.Asset, error) {
+	AssetPath := osspecifics.CreatePath(w.mDatabaseDir, as.GetName())
+	err := os.WriteFile(AssetPath, as.GetAssetBytes(), 0444)
+
+	if err != nil {
+		return nil, &generalerrors.WriteFileFailed{File: AssetPath}
+	}
 	w.mAssets = append(w.mAssets, as)
+	return as, nil
 }
 
 // RemoveAsset - This function will remove an asset from the wallet.

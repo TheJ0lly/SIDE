@@ -150,7 +150,7 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 		break
 	}
 
-	log.Printf("INFO: closing the netutils stream\n")
+	log.Printf("INFO: closing the network stream\n")
 	err := s.Close()
 
 	if err != nil {

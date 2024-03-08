@@ -417,7 +417,13 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		ok, as := netutils.MakeRequest(Wallet.GetNodesAddresses(), Wallet.GetHost(), args[0])
 
 		if ok {
-			Wallet.AddAssetFromNode(as)
+			_, err := Wallet.AddAssetFromNode(as)
+
+			if err != nil {
+				log.Printf("ERROR: failed to add asset - %s\n", err)
+				return RequestAssetFailed
+			}
+
 			return Success
 		} else {
 			return RequestAssetFailed
