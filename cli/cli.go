@@ -72,11 +72,12 @@ func displayHelp() {
 	fmt.Print("        Example: (/ip4/192.168.1.1/tcp/8080)\n")
 	fmt.Print("        Use address 192.168.1.1(IPv4) on port 8080 to handle a TCP connection\n")
 	fmt.Print("  -op <string>   \n      Input the name of the op you want to perform:\n")
-	fmt.Print("        AddAssetFromLocal <New Asset Name:string> <Initial location on machine:string>\n")
+	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
 	fmt.Print("        AddNode <Address in MultiAddress format:string>\n")
 	fmt.Print("        ViewNodes\n")
+	fmt.Print("        Request <AssetName : string>\n")
 }
 
 // InitFlags - will initialize the flags that will be used to execute the client.
@@ -228,7 +229,7 @@ func getOpArgs(op OPERATION) []string {
 
 	switch op {
 	case AddAsset:
-		operation = "AddAssetFromLocal"
+		operation = "AddAsset"
 		for i := 0; i < len(args); i++ {
 			if args[i] == operation && i < len(args)-2 {
 				opArgs = append(opArgs, args[i+1])
@@ -304,11 +305,11 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 	}
 
 	switch fv.Operation {
-	case "AddAssetFromLocal":
+	case "AddAsset":
 		args := getOpArgs(AddAsset)
 
 		if len(args) != 2 {
-			log.Printf("ERROR: operation AddAssetFromLocal did not receive the right amount of arguments\n")
+			log.Printf("ERROR: operation AddAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
 		}
 

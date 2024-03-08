@@ -127,8 +127,8 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 			log.Printf("ERROR: %s\n", err)
 			continue
 		}
-		log.Printf("INFO: received - %s\n", resp)
 		val := GetNumberFromResponse(resp)
+		log.Printf("INFO: received - %d\n", val)
 
 		if val == FailedConversion {
 			log.Printf("INFO: moving to the next address\n")

@@ -94,8 +94,8 @@ func ListenHandler(s network.Stream) {
 
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
-			return
 		}
+		return
 	}
 
 	log.Printf("INFO: asset found - sending size\n")
