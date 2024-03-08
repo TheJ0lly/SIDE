@@ -59,8 +59,8 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 	return w, nil
 }
 
-// AddAsset - This function will add an asset to the wallet.
-func (w *Wallet) AddAsset(assetName string, fileLocation string) (*asset.Asset, error) {
+// AddAssetFromLocal - This function will add an asset to the wallet.
+func (w *Wallet) AddAssetFromLocal(assetName string, fileLocation string) (*asset.Asset, error) {
 
 	if w.checkAssetExists(assetName) {
 		return nil, &generalerrors.AssetAlreadyExists{AssetName: assetName}
@@ -103,6 +103,10 @@ func (w *Wallet) AddAsset(assetName string, fileLocation string) (*asset.Asset, 
 
 	w.mAssets = append(w.mAssets, assetToAdd)
 	return assetToAdd, nil
+}
+
+func (w *Wallet) AddAssetFromNode(as *asset.Asset) {
+	w.mAssets = append(w.mAssets, as)
 }
 
 // RemoveAsset - This function will remove an asset from the wallet.

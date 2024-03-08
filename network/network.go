@@ -1,10 +1,16 @@
 package network
 
 import (
+	"context"
 	"errors"
+	"github.com/TheJ0lly/GoChain/asset"
+	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/peerstore"
 	"log"
 )
 
@@ -69,4 +75,103 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 	}
 
 	return h, nil
+}
+
+// MakeRequest - this function will make the request to the known addresses for a specific asset.
+func MakeRequest(W *wallet.Wallet, assetName string) (bool, *asset.Asset) {
+	addresses := W.GetNodesAddresses()
+
+	if addresses == nil {
+		log.Printf("INFO: no known addresses - aborting request for %s\n", assetName)
+		return false, nil
+	}
+
+	ha := W.GetHost()
+
+	ok := false
+	var s network.Stream
+	var buff []byte
+	for _, addr := range addresses {
+		info, err := peer.AddrInfoFromP2pAddr(addr)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
+		log.Printf("INFO: trying to connect to %s\n", addr.String())
+
+		s, err = ha.NewStream(context.Background(), info.ID, "LISTEN")
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		log.Printf("INFO: connected successfully to %s\n", addr.String())
+
+		log.Printf("INFO: requesting asset - %s\n", assetName)
+
+		_, err = s.Write([]byte(assetName))
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		resp := make([]byte, 10)
+		log.Printf("INFO: waiting for response code\n")
+		_, err = s.Read(resp)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			continue
+		}
+		log.Printf("INFO: received - %s\n", resp)
+		val := GetNumberFromResponse(resp)
+
+		if val == FailedConversion {
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		} else if val == AssetNotFound {
+			log.Printf("INFO: current node does not have asset %s\n", assetName)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		} else {
+			ok, buff = ReceiveAsset(s, assetName, val)
+			if !ok {
+				log.Printf("INFO: moving to the next address\n")
+				continue
+			}
+		}
+
+		log.Printf("INFO: request executed successfully\n")
+		ok = true
+		break
+	}
+
+	log.Printf("INFO: closing the network stream\n")
+	err := s.Close()
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		ok = false
+	}
+
+	ft := asset.DetermineType(buff)
+
+	if ft == asset.UNKNOWN {
+		ok = false
+	}
+
+	if ok {
+		as := asset.CreateNewAsset(assetName, asset.DetermineType(buff), buff)
+		return true, as
+	} else {
+		return false, nil
+	}
 }

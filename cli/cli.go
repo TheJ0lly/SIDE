@@ -1,18 +1,15 @@
 package cli
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
+	"github.com/TheJ0lly/GoChain/network"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/howeyc/gopass"
-	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/peer"
-	"github.com/libp2p/go-libp2p/core/peerstore"
 	"io/fs"
 	"log"
 	"os"
@@ -75,7 +72,7 @@ func displayHelp() {
 	fmt.Print("        Example: (/ip4/192.168.1.1/tcp/8080)\n")
 	fmt.Print("        Use address 192.168.1.1(IPv4) on port 8080 to handle a TCP connection\n")
 	fmt.Print("  -op <string>   \n      Input the name of the op you want to perform:\n")
-	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
+	fmt.Print("        AddAssetFromLocal <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
 	fmt.Print("        ViewAssets\n")
 	fmt.Print("        AddNode <Address in MultiAddress format:string>\n")
@@ -231,7 +228,7 @@ func getOpArgs(op OPERATION) []string {
 
 	switch op {
 	case AddAsset:
-		operation = "AddAsset"
+		operation = "AddAssetFromLocal"
 		for i := 0; i < len(args); i++ {
 			if args[i] == operation && i < len(args)-2 {
 				opArgs = append(opArgs, args[i+1])
@@ -307,15 +304,15 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 	}
 
 	switch fv.Operation {
-	case "AddAsset":
+	case "AddAssetFromLocal":
 		args := getOpArgs(AddAsset)
 
 		if len(args) != 2 {
-			log.Printf("ERROR: operation AddAsset did not receive the right amount of arguments\n")
+			log.Printf("ERROR: operation AddAssetFromLocal did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		asset, err := Wallet.AddAsset(args[0], args[1])
+		asset, err := Wallet.AddAssetFromLocal(args[0], args[1])
 
 		if err != nil {
 			log.Printf("INFO: failed to add asset: %s\n", args[0])
@@ -416,77 +413,10 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		addresses := Wallet.GetNodesAddresses()
-
-		if addresses == nil {
-			log.Printf("INFO: no known addresses - aborting request for %s\n", args[0])
-			return RequestAssetFailed
-		}
-
-		ha := Wallet.GetHost()
-
-		ok := false
-		var s network.Stream
-
-		for _, addr := range addresses {
-			info, err := peer.AddrInfoFromP2pAddr(addr)
-
-			if err != nil {
-				log.Printf("ERROR: %s\n", err)
-				log.Printf("INFO: moving to the next address\n")
-				continue
-			}
-
-			ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
-			log.Printf("INFO: trying to connect to %s\n", addr.String())
-
-			s, err = ha.NewStream(context.Background(), info.ID, "LISTEN")
-
-			if err != nil {
-				log.Printf("ERROR: %s\n", err)
-				log.Printf("INFO: moving to the next address\n")
-				continue
-			}
-
-			log.Printf("INFO: connected successfully to %s\n", addr.String())
-
-			text := fmt.Sprintf("Hello from %s", "Ana")
-			log.Printf("INFO: sending - %s\n", text)
-
-			_, err = s.Write([]byte(text))
-
-			if err != nil {
-				log.Printf("ERROR: %s\n", err)
-				log.Printf("INFO: moving to the next address\n")
-				continue
-			}
-
-			resp := make([]byte, 5)
-			log.Printf("INFO: waiting for response\n")
-			_, err = s.Read(resp)
-
-			if err != nil {
-				log.Printf("ERROR: %s\n")
-				ok = false
-				continue
-			}
-
-			log.Printf("INFO: received - %s\n", resp)
-
-			log.Printf("INFO: request executed successfully\n")
-			ok = true
-			break
-		}
-
-		log.Printf("INFO: closing the network stream\n")
-		err := s.Close()
-
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-			ok = false
-		}
+		ok, as := network.MakeRequest(Wallet, args[0])
 
 		if ok {
+			Wallet.AddAssetFromNode(as)
 			return Success
 		} else {
 			return RequestAssetFailed

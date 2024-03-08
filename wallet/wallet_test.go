@@ -83,7 +83,7 @@ func TestWallet_AddAsset(t *testing.T) {
 		return
 	}
 
-	a, err := W.AddAsset("Photo", "../testassets/index.jpg")
+	a, err := W.AddAssetFromLocal("Photo", "../testassets/index.jpg")
 
 	if err != nil {
 		t.Errorf("Error: %s\n", err)
