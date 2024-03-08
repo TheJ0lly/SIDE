@@ -413,7 +413,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		ok, as := netutils.MakeRequest(Wallet, args[0])
+		ok, as := netutils.MakeRequest(Wallet.GetNodesAddresses(), Wallet.GetHost(), args[0])
 
 		if ok {
 			Wallet.AddAssetFromNode(as)

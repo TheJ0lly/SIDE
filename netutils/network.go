@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"github.com/TheJ0lly/GoChain/asset"
-	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/peerstore"
+	"github.com/multiformats/go-multiaddr"
 	"log"
 )
 
@@ -78,15 +78,11 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 }
 
 // MakeRequest - this function will make the request to the known addresses for a specific asset.
-func MakeRequest(W *wallet.Wallet, assetName string) (bool, *asset.Asset) {
-	addresses := W.GetNodesAddresses()
-
+func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string) (bool, *asset.Asset) {
 	if addresses == nil {
 		log.Printf("INFO: no known addresses - aborting request for %s\n", assetName)
 		return false, nil
 	}
-
-	ha := W.GetHost()
 
 	ok := false
 	var s network.Stream
