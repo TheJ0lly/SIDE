@@ -158,13 +158,13 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 		ok = false
 	}
 
-	ft := asset.DetermineType(buff)
-
-	if ft == asset.UNKNOWN {
-		ok = false
-	}
-
 	if ok {
+		ft := asset.DetermineType(buff)
+
+		if ft == asset.UNKNOWN {
+			ok = false
+		}
+
 		as := asset.CreateNewAsset(assetName, asset.DetermineType(buff), buff)
 		return true, as
 	} else {
