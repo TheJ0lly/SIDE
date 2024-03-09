@@ -21,6 +21,24 @@ func displayHelp() {
 	fmt.Printf("  -u  \n      Choose the user for which the service will run.\n")
 }
 
+func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
+
+	fmt.Print("\n")
+	err := BC.ExportChain()
+
+	if err != nil {
+		return err
+	}
+
+	err = Wallet.ExportWallet()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	User := flag.String("u", "", "")
 
@@ -61,7 +79,16 @@ func main() {
 }
 
 func RequestHandler(s network.Stream) {
-	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
+	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
+	log.Printf("INFO: received new stream - %s\n", newAdd)
+
+	_, err := W.AddNode(newAdd)
+
+	if err != nil {
+		log.Printf("INFO: %s\n", err)
+	} else {
+		log.Printf("INFO: added new address\n")
+	}
 
 	defer func(s network.Stream) {
 		log.Printf("INFO: closing stream - %s\n", s.ID())
@@ -74,7 +101,7 @@ func RequestHandler(s network.Stream) {
 	var stor = make([]byte, 200)
 
 	log.Printf("INFO: reading from stream\n")
-	_, err := s.Read(stor)
+	_, err = s.Read(stor)
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
@@ -183,6 +210,19 @@ func InitializeHandler(s network.Stream) {
 		}
 	}
 
+	err = BC.ExportChain()
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+	}
+
+	BC.Unlock()
+	log.Printf("INFO: updating the blockchain instance\n")
+	BC, err = blockchain.ImportChain()
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+	}
 }
 
 func StartListener(ctx context.Context) {

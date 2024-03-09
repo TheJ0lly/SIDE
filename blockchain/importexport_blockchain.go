@@ -19,7 +19,7 @@ type blockchainIE struct {
 
 // Lock - will create a file that signals that the blockchain is currently in use.
 func (bc *BlockChain) Lock() error {
-	log.Printf("INFO: locking the blockchain save file.")
+	log.Printf("INFO: locking the blockchain save file.\n")
 	err := osspecifics.LockFile("bcs.json")
 
 	if err != nil {
@@ -32,7 +32,7 @@ func (bc *BlockChain) Lock() error {
 // Unlock - will remove the lock file, thus signaling that the blockchain is ready to use.
 func (bc *BlockChain) Unlock() {
 	osspecifics.UnlockFile("bcs.json")
-	log.Printf("INFO: the blockchain save file has been unlocked.")
+	log.Printf("INFO: the blockchain save file has been unlocked.\n")
 }
 
 func ImportChain() (*BlockChain, error) {
