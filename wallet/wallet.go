@@ -40,8 +40,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 		return nil, &generalerrors.UsernameTooLong{Length: usernameMaxLength}
 	}
 
-	privateKey, _, err := crypto.GenerateKeyPairWithReader(crypto.Ed25519, 0, rand.Reader)
-	//privateKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 32, rand.Reader)
+	privateKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
 
 	if err != nil {
 		return nil, err
