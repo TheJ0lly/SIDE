@@ -1,9 +1,12 @@
 package netutils
 
 import (
+	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/TheJ0lly/GoChain/asset"
+	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -11,6 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/peerstore"
 	"github.com/multiformats/go-multiaddr"
+	"io"
 	"log"
 )
 
@@ -88,6 +92,7 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 	var s network.Stream
 	var buff []byte
 	for _, addr := range addresses {
+		log.Printf("INFO: getting peer information\n")
 		info, err := peer.AddrInfoFromP2pAddr(addr)
 
 		if err != nil {
@@ -138,7 +143,7 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 			log.Printf("INFO: moving to the next address\n")
 			continue
 		} else {
-			ok, buff = ReceiveAsset(s, assetName, val)
+			ok, buff = receiveAsset(s, assetName, val)
 			if !ok {
 				log.Printf("INFO: moving to the next address\n")
 				continue
@@ -170,4 +175,102 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 	} else {
 		return false, nil
 	}
+}
+
+func CreateNewBlockchainFromConn(ha core.Host, dbLoc string, ma multiaddr.Multiaddr) (*blockchain.BlockChain, error) {
+	log.Printf("INFO: getting peer information\n")
+	info, err := peer.AddrInfoFromP2pAddr(ma)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
+	log.Printf("INFO: trying to connect to %s\n", ma.String())
+
+	s, err := ha.NewStream(context.Background(), info.ID, "INITIALIZE")
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("INFO: connected successfully to %s\n", ma.String())
+
+	log.Printf("INFO: requesting number of blocks\n")
+	resp := make([]byte, 10)
+
+	_, err = s.Read(resp)
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := GetNumberFromResponse(resp)
+	log.Printf("INFO: received - %d\n", val)
+
+	if val == FailedConversion {
+		return nil, errors.New("failed to convert response to int\n")
+	}
+
+	blocks := InitializeProtocol(val, s)
+
+	bc := blockchain.CreateNewBlockchainFromData(dbLoc, blocks)
+
+	return bc, nil
+}
+
+func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
+	var bcc []*blockchain.Block
+
+	for i := 0; i < numBlocks; i++ {
+		resp := make([]byte, 10)
+
+		log.Printf("INFO: waiting for block size\n")
+		_, err := s.Read(resp)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return nil
+		}
+		l := GetNumberFromResponse(resp)
+
+		if l == FailedConversion {
+			log.Printf("ERROR: failed to convert response to int\n")
+			return nil
+		}
+		log.Printf("INFO: received - %d\n", l)
+
+		log.Printf("INFO: creating buffer of capacity - %d\n", l)
+		stor := make([]byte, l)
+
+		log.Printf("INFO: attempting to read %d bytes\n", l)
+		n, err := io.ReadFull(bufio.NewReader(s), stor)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return nil
+		}
+
+		log.Printf("INFO: read %d bytes from the connection\n", n)
+		if n != l {
+			log.Printf("ERROR: read a different amount of bytes than expected\n")
+			return nil
+		}
+
+		b := blockchain.ImportBlockFromConn(stor)
+
+		if b != nil {
+			return nil
+		}
+
+		bcc = append(bcc, b)
+	}
+
+	return bcc
+}
+
+func GetHostAddressFromConnection(conn core.Conn) string {
+	hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", conn.RemotePeer()))
+
+	return conn.RemoteMultiaddr().Encapsulate(hostAddr).String()
 }

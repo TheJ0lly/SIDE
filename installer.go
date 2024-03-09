@@ -1,11 +1,16 @@
 package main
 
 import (
+	"crypto/rand"
 	"flag"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
+	"github.com/TheJ0lly/GoChain/netutils"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"github.com/libp2p/go-libp2p/core"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
 )
@@ -14,11 +19,13 @@ func InstallerHelp() {
 	fmt.Printf("Usage: <exec> -d <string>\n")
 	fmt.Printf("  -d\n      Input the directory in which you want to hold the blockchain data.\n")
 	fmt.Printf("  -n\n      Clears the folder in which you are trying to set the database.\n")
+	fmt.Printf("  -a\n      The address of the node you want to initialize from.\n")
 }
 
 func main() {
 	Database := flag.String("d", "", "")
 	ClearFolder := flag.Bool("n", false, "")
+	Address := flag.String("a", "", "")
 	flag.Usage = InstallerHelp
 
 	flag.Parse()
@@ -27,12 +34,17 @@ func main() {
 		log.Printf("ERROR: No directory to install into. Set the value with the \"d\" flag.")
 		return
 	}
+	var BC *blockchain.BlockChain
+	var err error
+	var privateKey crypto.PrivKey
+	var ha core.Host
+	var ma multiaddr.Multiaddr
 
 	*Database = osspecifics.GetFullPathFromArg(*Database)
 
 	if *ClearFolder {
 		log.Printf("INFO: clearing selected folder...\n")
-		err := osspecifics.ClearFolder(*Database)
+		err = osspecifics.ClearFolder(*Database)
 
 		if err != nil {
 			generalerrors.HandleError(generalerrors.ERROR, err)
@@ -53,7 +65,33 @@ func main() {
 	}
 
 	log.Printf("INFO: initializing blockchain...\n")
-	BC, err := blockchain.CreateNewBlockchain(*Database)
+
+	if *Address != "" {
+		ma, err = multiaddr.NewMultiaddr(*Address)
+
+		if err != nil {
+			log.Printf("ERROR: cannot convert given address - %s\n", err)
+			return
+		}
+
+		privateKey, _, err = crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
+
+		if err != nil {
+			log.Printf("ERROR: failed to create temporary key - %s\n", err)
+			return
+		}
+
+		ha, err = netutils.CreateNewNode(netutils.CreateNodeOptions(privateKey, true, true, *Address))
+
+		if err != nil {
+			log.Printf("ERROR: failed to create temporary host - %s\n", err)
+			return
+		}
+
+		BC, err = netutils.CreateNewBlockchainFromConn(ha, *Database, ma)
+	} else {
+		BC, err = blockchain.CreateNewBlockchain(*Database)
+	}
 
 	if err != nil {
 		generalerrors.HandleError(generalerrors.ERROR, err)
@@ -69,5 +107,4 @@ func main() {
 	}
 
 	log.Printf("INFO: SIDE executable ready to use!\n")
-
 }

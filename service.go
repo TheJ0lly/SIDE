@@ -60,8 +60,8 @@ func main() {
 
 }
 
-func ListenHandler(s network.Stream) {
-	log.Printf("INFO: received new stream - %s\n", wallet.GetHostAddressFromConnection(s.Conn()))
+func RequestHandler(s network.Stream) {
+	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
 
 	defer func(s network.Stream) {
 		log.Printf("INFO: closing stream - %s\n", s.ID())
@@ -133,9 +133,63 @@ func ListenHandler(s network.Stream) {
 	return
 }
 
+func InitializeHandler(s network.Stream) {
+	err := BC.Lock()
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	defer func(s network.Stream) {
+		BC.Unlock()
+
+		log.Printf("INFO: closing stream - %s\n", s.ID())
+		err := s.Close()
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+		}
+	}(s)
+
+	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
+
+	log.Printf("INFO: getting number of blocks\n")
+	blocks := BC.GetBlocks()
+
+	log.Printf("INFO: sending number of blocks\n")
+	_, err = s.Write([]byte(strconv.Itoa(len(blocks))))
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	for _, b := range blocks {
+		byt := blockchain.ExportBlockForConn(b)
+
+		log.Printf("INFO: sending block size\n")
+		_, err := s.Write([]byte(strconv.Itoa(len(byt))))
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return
+		}
+
+		log.Printf("INFO: sending block bytes\n")
+		_, err = s.Write(byt)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return
+		}
+	}
+
+}
+
 func StartListener(ctx context.Context) {
 	fullAddr := W.GetHostAddress()
 	log.Printf("INFO: listening on - %s\n", fullAddr)
 
-	W.GetHost().SetStreamHandler("REQUEST", ListenHandler)
+	W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
+	W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
 }

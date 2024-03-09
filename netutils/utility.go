@@ -42,8 +42,8 @@ func ConvertBytesToString(b []byte) string {
 	return rStr
 }
 
-// ReceiveAsset - this function will try to read the bytes of the asset being sent over the netutils.
-func ReceiveAsset(s network.Stream, asset string, val int) (bool, []byte) {
+// receiveAsset - this function will try to read the bytes of the asset being sent over the netutils.
+func receiveAsset(s network.Stream, asset string, val int) (bool, []byte) {
 	log.Printf("INFO: current node has asset %s\n", asset)
 	log.Printf("INFO: creating buffer of capacity - %d\n", val)
 	buff := make([]byte, val)

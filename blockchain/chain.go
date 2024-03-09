@@ -33,6 +33,14 @@ func CreateNewBlockchain(dbLoc string) (*BlockChain, error) {
 	return bc, nil
 }
 
+func CreateNewBlockchainFromData(dbLoc string, blocks []*Block) *BlockChain {
+	return &BlockChain{
+		mBlocks:      blocks,
+		mDatabaseDir: dbLoc,
+		mLastBlock:   blocks[len(blocks)-1],
+	}
+}
+
 // AddData - will add some data onto the blockchain.
 func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asset) error {
 	md := metadata.CreateNewMetaData(from, destination, asset.GetName())
@@ -73,3 +81,5 @@ func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asse
 func (bc *BlockChain) GetDBLocation() string {
 	return bc.mDatabaseDir
 }
+
+func (bc *BlockChain) GetBlocks() []*Block { return bc.mBlocks }

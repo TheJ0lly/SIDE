@@ -8,6 +8,7 @@ import (
 	"github.com/TheJ0lly/GoChain/hashtree"
 	"github.com/TheJ0lly/GoChain/metadata"
 	"github.com/TheJ0lly/GoChain/osspecifics"
+	"log"
 	"os"
 	"strconv"
 )
@@ -142,6 +143,61 @@ func ImportBlock(location string) (*Block, error) {
 		mHashTree: ht,
 	}, nil
 
+}
+
+func ImportBlockFromConn(b []byte) *Block {
+	var bie blockIE
+
+	err := json.Unmarshal(b, &bie)
+
+	if err != nil {
+		log.Printf("ERROR: failed to marshal block - %s\n", err)
+		return nil
+	}
+
+	md := GetMetadataSlice(bie.MetaData)
+
+	mh := getMetaDataHashes(md)
+
+	ht := hashtree.GenerateTree(mh)
+
+	var PrevHash []byte
+
+	if bie.PrevHash != "" {
+
+		var previousHash [32]byte
+		x := 0
+
+		for i := 0; i < len(bie.PrevHash); i += 2 {
+			previousHash[x] = getByteFromHex(bie.PrevHash[i], bie.PrevHash[i+1])
+			x++
+		}
+
+		PrevHash = append(PrevHash, previousHash[:]...)
+	}
+
+	return &Block{
+		mMetaData: md,
+		mPrevHash: PrevHash,
+		mCurrHash: ht.RootHash[:],
+		mHashTree: ht,
+	}
+}
+
+func ExportBlockForConn(b *Block) []byte {
+	bie := blockIE{
+		MetaData: getMetadataIESlice(b),
+		PrevHash: fmt.Sprintf("%X", b.mPrevHash),
+	}
+
+	byt, err := json.Marshal(bie)
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return nil
+	}
+
+	return byt
 }
 
 // ExportBlock - will export a block
