@@ -134,13 +134,6 @@ func RequestHandler(s network.Stream) {
 }
 
 func InitializeHandler(s network.Stream) {
-	err := BC.Lock()
-
-	if err != nil {
-		log.Printf("ERROR: %s\n", err)
-		return
-	}
-
 	defer func(s network.Stream) {
 		BC.Unlock()
 
@@ -152,6 +145,12 @@ func InitializeHandler(s network.Stream) {
 	}(s)
 
 	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
+	err := BC.Lock()
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
 
 	log.Printf("INFO: getting number of blocks\n")
 	blocks := BC.GetBlocks()

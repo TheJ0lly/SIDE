@@ -13,6 +13,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
+	"strings"
 )
 
 func InstallerHelp() {
@@ -90,6 +91,19 @@ func main() {
 
 		BC, err = netutils.CreateNewBlockchainFromConn(ha, *Database, ma)
 	} else {
+
+		log.Printf("INFO: creating blockchain from scratch\n")
+		fmt.Printf("Are you sure you don't want to try to connect to other users? y/n:")
+
+		var choice string
+
+		_, err := fmt.Scanln(&choice)
+
+		if err != nil || strings.ToLower(choice) == "n" {
+			log.Printf("INFO: aborting installation\n")
+			return
+		}
+
 		BC, err = blockchain.CreateNewBlockchain(*Database)
 	}
 
