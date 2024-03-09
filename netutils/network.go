@@ -214,6 +214,10 @@ func CreateNewBlockchainFromConn(ha core.Host, dbLoc string, ma multiaddr.Multia
 
 	blocks := InitializeProtocol(val, s)
 
+	if blocks == nil {
+		return nil, errors.New("there are no blocks")
+	}
+
 	bc := blockchain.CreateNewBlockchainFromData(dbLoc, blocks)
 
 	return bc, nil
@@ -221,7 +225,7 @@ func CreateNewBlockchainFromConn(ha core.Host, dbLoc string, ma multiaddr.Multia
 
 func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
 	var bcc []*blockchain.Block
-
+	log.Printf("INFO: waiting to read %d blocks\n", numBlocks)
 	for i := 0; i < numBlocks; i++ {
 		resp := make([]byte, 10)
 
@@ -258,6 +262,8 @@ func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
 		}
 
 		b := blockchain.ImportBlockFromConn(stor)
+
+		log.Printf("INFO: received block - %X\n", b.GetBlockTreeMatrix().RootHash)
 
 		if b != nil {
 			return nil
