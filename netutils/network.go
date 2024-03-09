@@ -224,7 +224,7 @@ func CreateNewBlockchainFromConn(ha core.Host, dbLoc string, ma multiaddr.Multia
 }
 
 func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
-	var bcc []*blockchain.Block
+	var bcc = make([]*blockchain.Block, 0)
 	log.Printf("INFO: waiting to read %d blocks\n", numBlocks)
 	for i := 0; i < numBlocks; i++ {
 		resp := make([]byte, 10)
