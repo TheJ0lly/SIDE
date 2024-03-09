@@ -265,7 +265,7 @@ func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
 
 		log.Printf("INFO: received block - %X\n", b.GetBlockTreeMatrix().RootHash)
 
-		if b != nil {
+		if b == nil {
 			return nil
 		}
 
