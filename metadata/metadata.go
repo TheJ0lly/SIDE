@@ -1,5 +1,7 @@
 package metadata
 
+import "crypto/sha256"
+
 type MetaData struct {
 	mSource      string
 	mDestination string
@@ -28,4 +30,8 @@ func (md *MetaData) GetAssetName() string {
 
 func (md *MetaData) GetMetaDataString() string {
 	return md.mSource + " " + md.mDestination + " " + md.mAssetName
+}
+
+func (md *MetaData) GetMetadataHash() [32]byte {
+	return sha256.Sum256([]byte(md.GetMetaDataString()))
 }

@@ -60,8 +60,7 @@ func getMetaDataHashes(md []*metadata.MetaData) [][32]byte {
 	var newList [][32]byte
 
 	for _, m := range md {
-		mStr := m.GetMetaDataString()
-		newList = append(newList, sha256.Sum256([]byte(mStr)))
+		newList = append(newList, m.GetMetadataHash())
 	}
 
 	return newList
@@ -87,4 +86,8 @@ func checkIfGenesis(b *Block) bool {
 
 func (b *Block) GetBlockTreeMatrix() *hashtree.Tree {
 	return b.mHashTree
+}
+
+func (b *Block) GetMetadata() []*metadata.MetaData {
+	return b.mMetaData
 }
