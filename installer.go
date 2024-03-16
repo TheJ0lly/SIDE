@@ -82,7 +82,7 @@ func main() {
 			return
 		}
 
-		ha, err = netutils.CreateNewNode(netutils.CreateNodeOptions(privateKey, true, true, *Address))
+		ha, err = netutils.CreateNewNode(netutils.CreateNodeOptions(privateKey, "", "0"))
 
 		if err != nil {
 			log.Printf("ERROR: failed to create temporary host - %s\n", err)
@@ -93,7 +93,7 @@ func main() {
 	} else {
 
 		log.Printf("INFO: creating blockchain from scratch\n")
-		fmt.Printf("Are you sure you don't want to try to connect to other users? y/n:")
+		fmt.Printf("Are you sure you don't want to try to connect to other users? y/n: ")
 
 		var choice string
 

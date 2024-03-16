@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	NoValuePassed = "NO_VALUE_PASSED"
+	NoValuePassed = ""
 	Success       = iota
 	HelpCalled
 	NoPassOrUser
@@ -53,9 +53,8 @@ type FlagValues struct {
 	NewWallet        string
 	Operation        string
 	DeleteWalletSave bool
-	IP6Def           bool
-	IP4Def           bool
-	Addrs            []string
+	IP               string
+	Port             string
 }
 
 // displayHelp - will be used when the help flag is called, or when user fails to comply to execution requirements.
@@ -66,11 +65,8 @@ func displayHelp() {
 	fmt.Print("  -u <string>    \n      Input the username of the wallet you want to log in.\n")
 	fmt.Print("  -n <string>    \n      Creates a new instance of a wallet.\n")
 	fmt.Print("  -d             \n      Delete the wallet.\n")
-	fmt.Print("  -ip6           \n      Allow the auto-search for available IPv6 addresses when creating the wallet.\n")
-	fmt.Print("  -ip4           \n      Allow the auto-search for available IPv4 addresses when creating the wallet.\n")
-	fmt.Print("  -a <string(s)> \n      Give the address(es) to listen to when creating a new wallet.\n")
-	fmt.Print("        Example: (/ip4/192.168.1.1/tcp/8080)\n")
-	fmt.Print("        Use address 192.168.1.1(IPv4) on port 8080 to handle a TCP connection\n")
+	fmt.Print("  -ip            \n      Bind an IP address to this node.\n")
+	fmt.Print("  -p             \n      Bind a port to this nodes address\n")
 	fmt.Print("  -op <string>   \n      Input the name of the op you want to perform:\n")
 	fmt.Print("        AddAsset <New Asset Name:string> <Initial location on machine:string>\n")
 	fmt.Print("        RemoveAsset <Asset Name:string>\n")
@@ -87,9 +83,8 @@ func InitFlags() *FlagValues {
 	NewWallet := flag.String("n", NoValuePassed, "")
 	Operation := flag.String("op", NoValuePassed, "")
 	DeleteWalletSave := flag.Bool("d", false, "")
-	IP6 := flag.Bool("ip6", false, "")
-	IP4 := flag.Bool("ip4", false, "")
-	ADDRS := flag.String("a", NoValuePassed, "")
+	IP := flag.String("ip", NoValuePassed, "")
+	PORT := flag.String("p", NoValuePassed, "")
 
 	flag.Usage = displayHelp
 
@@ -102,12 +97,6 @@ func InitFlags() *FlagValues {
 
 	if *U == NoValuePassed {
 		os.Exit(NoPassOrUser)
-	}
-
-	var Addresses = make([]string, 0)
-
-	if *ADDRS != NoValuePassed {
-		Addresses = strings.Split(*ADDRS, " ")
 	}
 
 	if *NewWallet != NoValuePassed {
@@ -129,9 +118,8 @@ func InitFlags() *FlagValues {
 		NewWallet:        *NewWallet,
 		Operation:        *Operation,
 		DeleteWalletSave: *DeleteWalletSave,
-		IP6Def:           *IP6,
-		IP4Def:           *IP4,
-		Addrs:            Addresses,
+		IP:               *IP,
+		Port:             *PORT,
 	}
 
 }
@@ -183,7 +171,7 @@ func getWallet(fv *FlagValues) (*wallet.Wallet, error) {
 			return nil, &generalerrors.WalletDBHasItems{Dir: fv.NewWallet}
 		}
 
-		Wallet, err = wallet.CreateNewWallet(fv.Username, fv.Password, fv.NewWallet, fv.IP4Def, fv.IP6Def, fv.Addrs...)
+		Wallet, err = wallet.CreateNewWallet(fv.Username, fv.Password, fv.NewWallet, fv.IP, fv.Port)
 
 		if err != nil {
 			return nil, err

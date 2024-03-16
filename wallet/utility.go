@@ -49,7 +49,7 @@ func checkAddrIsNotLH(ma multiaddr.Multiaddr) bool {
 		IP += string(maStr[i])
 	}
 
-	if strings.Contains(IP, "127.0") || strings.Contains(IP, "::1") {
+	if strings.Contains(IP, "127.0.0") || strings.Contains(IP, "::1") {
 		return false
 	}
 

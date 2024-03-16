@@ -35,7 +35,7 @@ type Wallet struct {
 }
 
 // CreateNewWallet - This function will create a wallet.
-func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, IP6 bool, Addresses ...string) (*Wallet, error) {
+func CreateNewWallet(username string, password string, dbLoc string, IP string, Port string) (*Wallet, error) {
 	if len(username) > usernameMaxLength {
 		return nil, &generalerrors.UsernameTooLong{Length: usernameMaxLength}
 	}
@@ -46,7 +46,7 @@ func CreateNewWallet(username string, password string, dbLoc string, IP4 bool, I
 		return nil, err
 	}
 
-	host, err := netutils.CreateNewNode(netutils.CreateNodeOptions(privateKey, IP4, IP6, Addresses...))
+	host, err := netutils.CreateNewNode(netutils.CreateNodeOptions(privateKey, IP, Port))
 
 	if err != nil {
 		return nil, err
