@@ -301,6 +301,13 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
+		err := os.WriteFile("importW", nil, 0666)
+
+		if err != nil {
+			log.Printf("ERROR: failed to write notification to the service\n")
+			return RequestAssetFailed
+		}
+
 		asset, err := Wallet.AddAssetFromLocal(args[0], args[1])
 
 		if err != nil {
@@ -326,6 +333,13 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		if len(args) != 1 {
 			log.Printf("ERROR: operation RemoveAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
+		}
+
+		err := os.WriteFile("importW", nil, 0666)
+
+		if err != nil {
+			log.Printf("ERROR: failed to write notification to the service\n")
+			return RequestAssetFailed
 		}
 
 		asset, err := Wallet.RemoveAsset(args[0])
