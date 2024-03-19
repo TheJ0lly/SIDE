@@ -21,6 +21,9 @@ import (
 var W *wallet.Wallet
 var BC *blockchain.BlockChain
 var UserName string
+var RequestR = false
+var FloodR = false
+var InitializeR = false
 
 func displayHelp() {
 	fmt.Printf("Usage: <exec> -u <string>\n\n")
@@ -135,6 +138,10 @@ func RequestHandler(s network.Stream) {
 	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
 	log.Printf("INFO: received new stream - %s\n", newAdd)
 
+	defer func() {
+		RequestR = true
+	}()
+
 	_, err := W.AddNode(newAdd)
 
 	if err != nil {
@@ -222,6 +229,7 @@ func InitializeHandler(s network.Stream) {
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 		}
+		InitializeR = true
 	}(s)
 
 	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
@@ -287,6 +295,7 @@ func FloodHandler(s network.Stream) {
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 		}
+		FloodR = true
 	}(s)
 
 	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
@@ -376,15 +385,15 @@ func FloodHandler(s network.Stream) {
 	log.Printf("INFO: exporting new wallet data\n")
 	err = W.ExportWallet()
 	if err != nil {
-
 		log.Printf("ERROR: %s\n", err)
+		return
 	}
 
 	log.Printf("INFO: importing new wallet data\n")
 	W, err = wallet.ImportWallet(UserName)
 	if err != nil {
-
 		log.Printf("ERROR: %s\n", err)
+		return
 	}
 }
 
@@ -392,7 +401,25 @@ func StartListener(ctx context.Context) {
 	fullAddr := W.GetHostAddress()
 	log.Printf("INFO: listening on - %s\n", fullAddr)
 
-	W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
-	W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
-	W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
+	for {
+		if RequestR {
+			log.Printf("INFO: refreshing request stream\n")
+			W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
+			RequestR = false
+		}
+
+		if InitializeR {
+			log.Printf("INFO: refreshing initialize stream\n")
+			W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
+			InitializeR = false
+		}
+
+		if FloodR {
+			log.Printf("INFO: refreshing flood stream\n")
+			W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
+			FloodR = false
+		}
+
+	}
+
 }
