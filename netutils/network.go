@@ -14,6 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/peerstore"
 	"github.com/multiformats/go-multiaddr"
 	"io"
 	"log"
@@ -102,6 +103,7 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 			continue
 		}
 
+		ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.TempAddrTTL)
 		log.Printf("INFO: trying to connect to %s\n", addr.String())
 
 		s, err = ha.NewStream(context.Background(), info.ID, "REQUEST")
@@ -187,6 +189,7 @@ func CreateNewBlockchainFromConn(ha core.Host, dbLoc string, ma multiaddr.Multia
 		return nil, err
 	}
 
+	ha.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.TempAddrTTL)
 	log.Printf("INFO: trying to connect to %s\n", ma.String())
 
 	s, err := ha.NewStream(context.Background(), info.ID, "INITIALIZE")
@@ -294,6 +297,7 @@ func FloodProtocol(addresses []multiaddr.Multiaddr, h core.Host, md *metadata.Me
 			continue
 		}
 
+		h.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.TempAddrTTL)
 		log.Printf("INFO: trying to connect to %s\n", addr.String())
 
 		s, err := h.NewStream(context.Background(), info.ID, "FLOOD")
