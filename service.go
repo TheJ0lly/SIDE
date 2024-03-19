@@ -54,7 +54,7 @@ func updateWallet(ctx context.Context) {
 		}
 
 		log.Printf("INFO: received notification to update %s\n", UserName)
-
+		log.Printf("INFO: updating wallet\n")
 		W, err = wallet.ImportWallet(UserName)
 
 		if err != nil {
@@ -65,6 +65,7 @@ func updateWallet(ctx context.Context) {
 
 		log.Printf("INFO: updated wallet successfully\n")
 
+		log.Printf("INFO: updating blockchain\n")
 		BC, err = blockchain.ImportChain()
 
 		if err != nil {
