@@ -62,6 +62,16 @@ func updateWallet(ctx context.Context) {
 			log.Printf("INFO: terminating the service\n")
 			return
 		}
+
+		log.Printf("INFO: updated wallet successfully\n")
+
+		err = os.Remove("importW")
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: terminating the service\n")
+			return
+		}
 	}
 }
 
