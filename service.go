@@ -14,11 +14,13 @@ import (
 	"github.com/libp2p/go-libp2p/core/network"
 	"io"
 	"log"
+	"os"
 	"strconv"
 )
 
 var W *wallet.Wallet
 var BC *blockchain.BlockChain
+var UserName string
 
 func displayHelp() {
 	fmt.Printf("Usage: <exec> -u <string>\n\n")
@@ -43,6 +45,26 @@ func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
 	return nil
 }
 
+func updateWallet(ctx context.Context) {
+	for {
+		_, err := os.ReadFile("importW")
+
+		if err != nil {
+			continue
+		}
+
+		log.Printf("INFO: received notification to import wallet %s\n", UserName)
+
+		W, err = wallet.ImportWallet(UserName)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: terminating the service\n")
+			return
+		}
+	}
+}
+
 func main() {
 	User := flag.String("u", "", "")
 
@@ -65,6 +87,8 @@ func main() {
 		return
 	}
 
+	UserName = *User
+
 	log.Printf("INFO: getting the blockchain\n")
 	BC, err = blockchain.ImportChain()
 
@@ -74,6 +98,7 @@ func main() {
 	}
 
 	back := context.Background()
+	go updateWallet(back)
 	go StartListener(back)
 
 	select {

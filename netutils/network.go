@@ -157,12 +157,14 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 		break
 	}
 
-	log.Printf("INFO: closing the network stream\n")
-	err := s.Close()
+	if s != nil {
+		log.Printf("INFO: closing the network stream\n")
+		err := s.Close()
 
-	if err != nil {
-		log.Printf("ERROR: %s\n", err)
-		ok = false
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			ok = false
+		}
 	}
 
 	if ok {
@@ -282,6 +284,8 @@ func FloodProtocol(addresses []multiaddr.Multiaddr, h core.Host, md *metadata.Me
 		log.Printf("INFO: no known addresses - aborting flood\n")
 		return
 	}
+
+	log.Printf("INFO: starting the flood protocol\n")
 
 	for _, addr := range addresses {
 		log.Printf("INFO: getting peer information\n")
