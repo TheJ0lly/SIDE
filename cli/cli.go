@@ -301,13 +301,6 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		err := os.WriteFile("importNotification", nil, 0666)
-
-		if err != nil {
-			log.Printf("ERROR: failed to write notification to the service\n")
-			return RequestAssetFailed
-		}
-
 		asset, err := Wallet.AddAssetFromLocal(args[0], args[1])
 
 		if err != nil {
@@ -333,13 +326,6 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		if len(args) != 1 {
 			log.Printf("ERROR: operation RemoveAsset did not receive the right amount of arguments\n")
 			return WrongNumberOfArgsGivenToOp
-		}
-
-		err := os.WriteFile("importNotification", nil, 0666)
-
-		if err != nil {
-			log.Printf("ERROR: failed to write notification to the service\n")
-			return RequestAssetFailed
 		}
 
 		asset, err := Wallet.RemoveAsset(args[0])
@@ -383,13 +369,6 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		err := os.WriteFile("importNotification", nil, 0666)
-
-		if err != nil {
-			log.Printf("ERROR: failed to write notification to the service\n")
-			return RequestAssetFailed
-		}
-
 		ma, err := Wallet.AddNode(args[0])
 
 		if err != nil {
@@ -428,13 +407,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		ok, as := netutils.MakeRequest(Wallet.GetNodesAddresses(), Wallet.GetHost(), args[0])
 
 		if ok {
-			err := os.WriteFile("importNotification", nil, 0666)
-
-			if err != nil {
-				log.Printf("ERROR: failed to write notification to the service\n")
-				return RequestAssetFailed
-			}
-			_, err = Wallet.AddAssetFromNode(as)
+			_, err := Wallet.AddAssetFromNode(as)
 
 			if err != nil {
 				log.Printf("ERROR: failed to add asset - %s\n", err)
@@ -534,17 +507,27 @@ func Execute(fv *FlagValues) int {
 		return retVal
 	}
 
-	if fv.Operation == "ViewAssets" {
+	switch fv.Operation {
+	case "ViewAssets":
+	case "ViewNodes":
 		return Success
+	default:
+		//Export states
+		err = exportStates(Wallet, BC)
+
+		if err != nil {
+			generalerrors.HandleError(generalerrors.ERROR, err)
+			return FailedExporting
+		}
 	}
 
-	//Export states
-	err = exportStates(Wallet, BC)
+	log.Printf("INFO: writing notification\n")
+	err = os.WriteFile("importNotification", nil, 0666)
 
 	if err != nil {
-		generalerrors.HandleError(generalerrors.ERROR, err)
-		return FailedExporting
+		log.Printf("ERROR: failed to write notification to the service\n")
+		return RequestAssetFailed
 	}
-
+	log.Printf("INFO: notification wrote\n")
 	return Success
 }
