@@ -134,7 +134,7 @@ func main() {
 
 func RequestHandler(s network.Stream) {
 	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
-	log.Printf("INFO: received new stream - %s\n", newAdd)
+	log.Printf("INFO: received new stream on request - %s\n", newAdd)
 
 	_, err := W.AddNode(newAdd)
 
@@ -216,7 +216,7 @@ func InitializeHandler(s network.Stream) {
 		log.Printf("INFO: finshing stream - %s\n", s.ID())
 	}(s)
 
-	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
+	log.Printf("INFO: received new stream on initialize - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
 	err := BC.Lock()
 
 	if err != nil {
@@ -277,7 +277,7 @@ func FloodHandler(s network.Stream) {
 	}(s)
 
 	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
-	log.Printf("INFO: received new stream - %s\n", newAdd)
+	log.Printf("INFO: received new stream on flood - %s\n", newAdd)
 	err := BC.Lock()
 
 	_, err = W.AddNode(newAdd)
@@ -286,11 +286,6 @@ func FloodHandler(s network.Stream) {
 		log.Printf("INFO: %s\n", err)
 	} else {
 		log.Printf("INFO: added new address\n")
-	}
-
-	if err != nil {
-		log.Printf("ERROR: %s\n", err)
-		return
 	}
 
 	log.Printf("INFO: reading from stream\n")
