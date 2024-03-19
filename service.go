@@ -21,9 +21,6 @@ import (
 var W *wallet.Wallet
 var BC *blockchain.BlockChain
 var UserName string
-var RequestR = false
-var FloodR = false
-var InitializeR = false
 
 func displayHelp() {
 	fmt.Printf("Usage: <exec> -u <string>\n\n")
@@ -125,9 +122,14 @@ func main() {
 	}
 
 	back, cancel := context.WithCancel(context.Background())
-	go updateWallet(back, cancel)
-	go StartListener(back)
 
+	fullAddr := W.GetHostAddress()
+	log.Printf("INFO: listening on - %s\n", fullAddr)
+	W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
+	W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
+	W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
+
+	go updateWallet(back, cancel)
 	select {
 	case <-back.Done():
 	}
@@ -138,10 +140,6 @@ func RequestHandler(s network.Stream) {
 	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
 	log.Printf("INFO: received new stream - %s\n", newAdd)
 
-	defer func() {
-		RequestR = true
-	}()
-
 	_, err := W.AddNode(newAdd)
 
 	if err != nil {
@@ -151,11 +149,7 @@ func RequestHandler(s network.Stream) {
 	}
 
 	defer func(s network.Stream) {
-		log.Printf("INFO: closing stream - %s\n", s.ID())
-		err := s.Close()
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-		}
+		log.Printf("INFO: finishing stream - %s\n", s.ID())
 	}(s)
 
 	var stor = make([]byte, 200)
@@ -223,13 +217,7 @@ func RequestHandler(s network.Stream) {
 func InitializeHandler(s network.Stream) {
 	defer func(s network.Stream) {
 		BC.Unlock()
-
-		log.Printf("INFO: closing stream - %s\n", s.ID())
-		err := s.Close()
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-		}
-		InitializeR = true
+		log.Printf("INFO: finshing stream - %s\n", s.ID())
 	}(s)
 
 	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
@@ -289,13 +277,7 @@ func InitializeHandler(s network.Stream) {
 func FloodHandler(s network.Stream) {
 	defer func(s network.Stream) {
 		BC.Unlock()
-
-		log.Printf("INFO: closing stream - %s\n", s.ID())
-		err := s.Close()
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-		}
-		FloodR = true
+		log.Printf("INFO: finshing stream - %s\n", s.ID())
 	}(s)
 
 	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
@@ -385,41 +367,26 @@ func FloodHandler(s network.Stream) {
 	log.Printf("INFO: exporting new wallet data\n")
 	err = W.ExportWallet()
 	if err != nil {
+
 		log.Printf("ERROR: %s\n", err)
-		return
 	}
 
 	log.Printf("INFO: importing new wallet data\n")
 	W, err = wallet.ImportWallet(UserName)
 	if err != nil {
+
 		log.Printf("ERROR: %s\n", err)
-		return
 	}
 }
 
-func StartListener(ctx context.Context) {
-	fullAddr := W.GetHostAddress()
-	log.Printf("INFO: listening on - %s\n", fullAddr)
-
-	for {
-		if RequestR {
-			log.Printf("INFO: refreshing request stream\n")
-			W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
-			RequestR = false
-		}
-
-		if InitializeR {
-			log.Printf("INFO: refreshing initialize stream\n")
-			W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
-			InitializeR = false
-		}
-
-		if FloodR {
-			log.Printf("INFO: refreshing flood stream\n")
-			W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
-			FloodR = false
-		}
-
-	}
-
-}
+//func StartListener(ctx context.Context) {
+//	fullAddr := W.GetHostAddress()
+//	log.Printf("INFO: listening on - %s\n", fullAddr)
+//
+//	for {
+//		W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
+//		W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
+//		W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
+//	}
+//
+//}
