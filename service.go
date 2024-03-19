@@ -286,8 +286,17 @@ func FloodHandler(s network.Stream) {
 		}
 	}(s)
 
-	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
+	var newAdd = netutils.GetHostAddressFromConnection(s.Conn())
+	log.Printf("INFO: received new stream - %s\n", newAdd)
 	err := BC.Lock()
+
+	_, err = W.AddNode(newAdd)
+
+	if err != nil {
+		log.Printf("INFO: %s\n", err)
+	} else {
+		log.Printf("INFO: added new address\n")
+	}
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
