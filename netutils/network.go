@@ -9,7 +9,6 @@ import (
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/metadata"
-	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -278,11 +277,13 @@ func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
 	return bcc
 }
 
-func FloodProtocol(w *wallet.Wallet, md *metadata.MetaData) {
-	h := w.GetHost()
-	nodes := w.GetNodesAddresses()
+func FloodProtocol(addresses []multiaddr.Multiaddr, h core.Host, md *metadata.MetaData) {
+	if addresses == nil {
+		log.Printf("INFO: no known addresses - aborting flood\n")
+		return
+	}
 
-	for _, addr := range nodes {
+	for _, addr := range addresses {
 		log.Printf("INFO: getting peer information\n")
 		info, err := peer.AddrInfoFromP2pAddr(addr)
 

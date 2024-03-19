@@ -509,7 +509,7 @@ func Execute(fv *FlagValues) int {
 		return Success
 	}
 
-	netutils.FloodProtocol(Wallet, BC.GetLastMetaData())
+	netutils.FloodProtocol(Wallet.GetNodesAddresses(), Wallet.GetHost(), BC.GetLastMetaData())
 
 	//Export states
 	err = exportStates(Wallet, BC)
