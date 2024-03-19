@@ -47,13 +47,13 @@ func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
 
 func updateWallet(ctx context.Context) {
 	for {
-		_, err := os.ReadFile("importW")
+		_, err := os.ReadFile("importNotification")
 
 		if err != nil {
 			continue
 		}
 
-		log.Printf("INFO: received notification to import wallet %s\n", UserName)
+		log.Printf("INFO: received notification to update %s\n", UserName)
 
 		W, err = wallet.ImportWallet(UserName)
 
@@ -65,7 +65,17 @@ func updateWallet(ctx context.Context) {
 
 		log.Printf("INFO: updated wallet successfully\n")
 
-		err = os.Remove("importW")
+		BC, err = blockchain.ImportChain()
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: terminating the service\n")
+			return
+		}
+
+		log.Printf("INFO: updated blockchain successfully\n")
+
+		err = os.Remove("importNotification")
 
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)

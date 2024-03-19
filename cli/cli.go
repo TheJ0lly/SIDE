@@ -301,7 +301,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		err := os.WriteFile("importW", nil, 0666)
+		err := os.WriteFile("importNotification", nil, 0666)
 
 		if err != nil {
 			log.Printf("ERROR: failed to write notification to the service\n")
@@ -335,7 +335,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		err := os.WriteFile("importW", nil, 0666)
+		err := os.WriteFile("importNotification", nil, 0666)
 
 		if err != nil {
 			log.Printf("ERROR: failed to write notification to the service\n")
@@ -383,7 +383,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return WrongNumberOfArgsGivenToOp
 		}
 
-		err := os.WriteFile("importW", nil, 0666)
+		err := os.WriteFile("importNotification", nil, 0666)
 
 		if err != nil {
 			log.Printf("ERROR: failed to write notification to the service\n")
@@ -428,7 +428,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		ok, as := netutils.MakeRequest(Wallet.GetNodesAddresses(), Wallet.GetHost(), args[0])
 
 		if ok {
-			err := os.WriteFile("importW", nil, 0666)
+			err := os.WriteFile("importNotification", nil, 0666)
 
 			if err != nil {
 				log.Printf("ERROR: failed to write notification to the service\n")
