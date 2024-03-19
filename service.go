@@ -63,6 +63,7 @@ func updateWallet(ctx context.Context, cancel func()) {
 			cancel()
 			return
 		}
+		SetupStreams()
 
 		log.Printf("INFO: updated wallet successfully\n")
 
