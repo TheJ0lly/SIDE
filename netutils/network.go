@@ -3,10 +3,13 @@ package netutils
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/blockchain"
+	"github.com/TheJ0lly/GoChain/metadata"
+	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -17,6 +20,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"strconv"
 )
 
 type Options struct {
@@ -272,6 +276,91 @@ func InitializeProtocol(numBlocks int, s network.Stream) []*blockchain.Block {
 	}
 
 	return bcc
+}
+
+func FloodProtocol(w *wallet.Wallet, md *metadata.MetaData) {
+	h := w.GetHost()
+	nodes := w.GetNodesAddresses()
+
+	for _, addr := range nodes {
+		log.Printf("INFO: getting peer information\n")
+		info, err := peer.AddrInfoFromP2pAddr(addr)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		h.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.AddressTTL)
+		log.Printf("INFO: trying to connect to %s\n", addr.String())
+
+		s, err := h.NewStream(context.Background(), info.ID, "FLOOD")
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		log.Printf("INFO: connected successfully to %s\n", addr.String())
+
+		mie := metadata.MetadataIE{
+			Source:      md.GetSourceName(),
+			Destination: md.GetDestinationName(),
+			AssetName:   md.GetAssetName(),
+		}
+
+		b, err := json.Marshal(mie)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			_, err = s.Write([]byte("-1"))
+
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+			}
+			continue
+		}
+
+		log.Printf("INFO: sending length of metadata\n")
+		_, err = s.Write([]byte(strconv.Itoa(len(b))))
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		log.Printf("INFO: waiting for ready signal\n")
+		var stor = make([]byte, 10)
+
+		_, err = s.Read(stor)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		resp := ConvertBytesToString(stor)
+
+		if resp == "READY" {
+			log.Printf("INFO: ready signal recieved - sending bytes\n")
+			_, err = s.Write(b)
+
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+				log.Printf("INFO: moving to the next address\n")
+				continue
+			}
+		}
+
+		log.Printf("INFO: updated node %s\n", addr.String())
+		log.Printf("INFO: moving to the next known node\n")
+
+	}
 }
 
 func GetHostAddressFromConnection(conn core.Conn) string {

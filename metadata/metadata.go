@@ -8,6 +8,12 @@ type MetaData struct {
 	mAssetName   string
 }
 
+type MetadataIE struct {
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
+	AssetName   string `json:"asset_name"`
+}
+
 func CreateNewMetaData(source string, destination string, assetName string) *MetaData {
 	return &MetaData{
 		mSource:      source,

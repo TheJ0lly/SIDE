@@ -309,7 +309,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return AddAssetFailed
 		}
 
-		err = BC.AddData("ADDED", Wallet.GetUsername(), asset)
+		err = BC.AddData("ADDED", Wallet.GetUsername(), asset.GetName())
 
 		if err != nil {
 			log.Printf("INFO: failed to add metadata: %s\n", asset.GetName())
@@ -335,7 +335,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 			return RemoveAssetFailed
 		}
 
-		err = BC.AddData(Wallet.GetUsername(), "REMOVED", asset)
+		err = BC.AddData(Wallet.GetUsername(), "REMOVED", asset.GetName())
 
 		if err != nil {
 			log.Printf("INFO: failed to add metadata: %s\n", asset.GetName())
@@ -508,6 +508,8 @@ func Execute(fv *FlagValues) int {
 	if fv.Operation == "ViewAssets" {
 		return Success
 	}
+
+	netutils.FloodProtocol(Wallet, BC.GetLastMetaData())
 
 	//Export states
 	err = exportStates(Wallet, BC)

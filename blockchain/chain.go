@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/hashtree"
 )
@@ -42,8 +41,8 @@ func CreateNewBlockchainFromData(dbLoc string, blocks []*Block) *BlockChain {
 }
 
 // AddData - will add some data onto the blockchain.
-func (bc *BlockChain) AddData(from string, destination string, asset *asset.Asset) error {
-	md := metadata.CreateNewMetaData(from, destination, asset.GetName())
+func (bc *BlockChain) AddData(from string, destination string, asset string) error {
+	md := metadata.CreateNewMetaData(from, destination, asset)
 
 	b, blockExists := bc.getProperBlock()
 	b.addDataToBlock(md)
@@ -83,3 +82,7 @@ func (bc *BlockChain) GetDBLocation() string {
 }
 
 func (bc *BlockChain) GetBlocks() []*Block { return bc.mBlocks }
+
+func (bc *BlockChain) GetLastMetaData() *metadata.MetaData {
+	return bc.mLastBlock.mMetaData[len(bc.mLastBlock.mMetaData)-1]
+}

@@ -17,15 +17,9 @@ const (
 	ASCIIToHexDifference = 55
 )
 
-type metadataIE struct {
-	Source      string `json:"source"`
-	Destination string `json:"destination"`
-	AssetName   string `json:"asset_name"`
-}
-
 type blockIE struct {
-	MetaData []metadataIE `json:"meta_data"`
-	PrevHash string       `json:"prev_hash"`
+	MetaData []metadata.MetadataIE `json:"meta_data"`
+	PrevHash string                `json:"prev_hash"`
 }
 
 // getByteFromHex - will return a byte formed out of 2 hex characters
@@ -53,10 +47,10 @@ func getByteFromHex(first byte, second byte) byte {
 }
 
 // getMetadataIESlice - will return the metadata of transaction in an exportable format
-func getMetadataIESlice(b *Block) []metadataIE {
-	var mdSlice []metadataIE
+func getMetadataIESlice(b *Block) []metadata.MetadataIE {
+	var mdSlice []metadata.MetadataIE
 	for _, md := range b.mMetaData {
-		mdSlice = append(mdSlice, metadataIE{
+		mdSlice = append(mdSlice, metadata.MetadataIE{
 			Source:      md.GetSourceName(),
 			Destination: md.GetDestinationName(),
 			AssetName:   md.GetAssetName(),
@@ -67,7 +61,7 @@ func getMetadataIESlice(b *Block) []metadataIE {
 }
 
 // GetMetadataSlice - will generate the metadata.MetaData slice from the exportable format
-func GetMetadataSlice(mie []metadataIE) []*metadata.MetaData {
+func GetMetadataSlice(mie []metadata.MetadataIE) []*metadata.MetaData {
 	var mdSlice []*metadata.MetaData
 
 	for _, md := range mie {

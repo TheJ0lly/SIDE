@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/generalerrors"
+	"github.com/TheJ0lly/GoChain/metadata"
 	"github.com/TheJ0lly/GoChain/netutils"
 	"github.com/TheJ0lly/GoChain/wallet"
 	"github.com/libp2p/go-libp2p/core/network"
+	"io"
 	"log"
 	"strconv"
 )
@@ -225,10 +229,99 @@ func InitializeHandler(s network.Stream) {
 	}
 }
 
+func FloodHandler(s network.Stream) {
+	defer func(s network.Stream) {
+		BC.Unlock()
+
+		log.Printf("INFO: closing stream - %s\n", s.ID())
+		err := s.Close()
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+		}
+	}(s)
+
+	log.Printf("INFO: received new stream - %s\n", netutils.GetHostAddressFromConnection(s.Conn()))
+	err := BC.Lock()
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	log.Printf("INFO: reading from stream\n")
+	stor := make([]byte, 10)
+
+	_, err = s.Read(stor)
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	resp := netutils.GetNumberFromResponse(stor)
+
+	if resp == netutils.FailedConversion {
+		log.Printf("ERROR: failed to convert bytes to response\n")
+		return
+	} else if resp == netutils.AssetNotFound {
+		log.Printf("ERROR: stream failed to marshal metadata\n")
+		return
+	} else {
+		log.Printf("INFO: sender has successfully marshalled the metadata\n")
+		log.Printf("INFO: creating buffer of capacity - %d\n", resp)
+
+		buff := make([]byte, resp)
+
+		_, err = s.Write([]byte("READY"))
+
+		if err != nil {
+			log.Printf("ERROR: failed to send ready - %s\n", err)
+			return
+		}
+
+		log.Printf("INFO: attempting to read %d bytes\n", resp)
+		n, err := io.ReadFull(bufio.NewReader(s), buff)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return
+		}
+
+		log.Printf("INFO: read %d bytes from the connection\n", n)
+		if n != resp {
+			log.Printf("ERROR: read a different amount of bytes than expected\n")
+			return
+		}
+
+		var mie metadata.MetadataIE
+
+		log.Printf("INFO: trying to unmarshal the bytes\n")
+		err = json.Unmarshal(buff, &mie)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return
+		}
+
+		log.Printf("INFO: unmarshalling successful\n")
+
+		err = BC.AddData(mie.Source, mie.Destination, mie.AssetName)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			return
+		}
+
+		log.Printf("INFO: successfully added metadata from stream\n")
+	}
+
+}
+
 func StartListener(ctx context.Context) {
 	fullAddr := W.GetHostAddress()
 	log.Printf("INFO: listening on - %s\n", fullAddr)
 
 	W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
 	W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
+	W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
 }
