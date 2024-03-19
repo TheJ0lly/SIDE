@@ -373,6 +373,19 @@ func FloodHandler(s network.Stream) {
 		log.Printf("INFO: successfully added metadata from stream\n")
 	}
 
+	log.Printf("INFO: exporting new wallet data\n")
+	err = W.ExportWallet()
+	if err != nil {
+
+		log.Printf("ERROR: %s\n", err)
+	}
+
+	log.Printf("INFO: importing new wallet data\n")
+	W, err = wallet.ImportWallet(UserName)
+	if err != nil {
+
+		log.Printf("ERROR: %s\n", err)
+	}
 }
 
 func StartListener(ctx context.Context) {
