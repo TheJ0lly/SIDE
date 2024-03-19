@@ -318,6 +318,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		}
 
 		log.Printf("INFO: added asset \"%s\" successfully!\n", asset.GetName())
+		netutils.FloodProtocol(Wallet.GetNodesAddresses(), Wallet.GetHost(), BC.GetLastMetaData())
 		return Success
 	case "RemoveAsset":
 		args := getOpArgs(RemoveAsset)
@@ -344,6 +345,7 @@ func performOperation(fv *FlagValues, Wallet *wallet.Wallet, BC *blockchain.Bloc
 		}
 
 		log.Printf("INFO: removed asset \"%s\" successfully!\n", asset.GetName())
+		netutils.FloodProtocol(Wallet.GetNodesAddresses(), Wallet.GetHost(), BC.GetLastMetaData())
 		return Success
 	case "ViewAssets":
 		assetSlice := Wallet.ViewAssets()
@@ -508,8 +510,6 @@ func Execute(fv *FlagValues) int {
 	if fv.Operation == "ViewAssets" {
 		return Success
 	}
-
-	netutils.FloodProtocol(Wallet.GetNodesAddresses(), Wallet.GetHost(), BC.GetLastMetaData())
 
 	//Export states
 	err = exportStates(Wallet, BC)
