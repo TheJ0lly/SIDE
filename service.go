@@ -45,7 +45,7 @@ func exportStates(Wallet *wallet.Wallet, BC *blockchain.BlockChain) error {
 	return nil
 }
 
-func updateWallet(ctx context.Context) {
+func updateWallet(ctx context.Context, cancel func()) {
 	for {
 		_, err := os.ReadFile("importNotification")
 
@@ -60,6 +60,7 @@ func updateWallet(ctx context.Context) {
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 			log.Printf("INFO: terminating the service\n")
+			cancel()
 			return
 		}
 
@@ -71,6 +72,7 @@ func updateWallet(ctx context.Context) {
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 			log.Printf("INFO: terminating the service\n")
+			cancel()
 			return
 		}
 
@@ -81,6 +83,7 @@ func updateWallet(ctx context.Context) {
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 			log.Printf("INFO: terminating the service\n")
+			cancel()
 			return
 		}
 	}
@@ -118,8 +121,8 @@ func main() {
 		return
 	}
 
-	back := context.Background()
-	go updateWallet(back)
+	back, cancel := context.WithCancel(context.Background())
+	go updateWallet(back, cancel)
 	go StartListener(back)
 
 	select {
