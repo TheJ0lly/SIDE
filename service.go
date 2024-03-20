@@ -345,6 +345,13 @@ func FloodHandler(s network.Stream) {
 
 		log.Printf("INFO: unmarshalling successful\n")
 
+		md := metadata.CreateNewMetaData(mie.Source, mie.Destination, mie.AssetName)
+
+		if BC.GetLastMetaData().GetMetadataHash() == md.GetMetadataHash() {
+			log.Printf("INFO: metadata already present\n")
+			return
+		}
+
 		err = BC.AddData(mie.Source, mie.Destination, mie.AssetName)
 
 		if err != nil {
@@ -353,6 +360,8 @@ func FloodHandler(s network.Stream) {
 		}
 
 		log.Printf("INFO: successfully added metadata from stream\n")
+
+		netutils.ForwardMetadata(W.GetNodesAddresses(), W.GetHost(), buff, newAdd)
 	}
 
 	log.Printf("INFO: exporting new wallet data\n")

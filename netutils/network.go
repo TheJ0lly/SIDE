@@ -368,6 +368,47 @@ func FloodProtocol(addresses []multiaddr.Multiaddr, h core.Host, md *metadata.Me
 	}
 }
 
+func ForwardMetadata(addresses []multiaddr.Multiaddr, h core.Host, metadata []byte, jumpAddr string) {
+	jumpA, err := multiaddr.NewMultiaddr(jumpAddr)
+
+	if err != nil {
+		log.Printf("ERROR: %s\n", err)
+		return
+	}
+
+	for _, addr := range addresses {
+		if addr.Equal(jumpA) {
+			log.Printf("INFO: jumping sender address\n")
+			continue
+		}
+		log.Printf("INFO: getting peer information\n")
+		info, err := peer.AddrInfoFromP2pAddr(addr)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		h.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.TempAddrTTL)
+		log.Printf("INFO: trying to connect to %s\n", addr.String())
+
+		s, err := h.NewStream(context.Background(), info.ID, "FLOOD")
+
+		_, err = s.Write(metadata)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		log.Printf("INFO: successfully forward metadata to %s\n", addr.String())
+	}
+
+	log.Printf("INFO: forwarded metadata to all known nodes\n")
+}
+
 func GetHostAddressFromConnection(conn core.Conn) string {
 	hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", conn.RemotePeer()))
 
