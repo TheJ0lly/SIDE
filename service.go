@@ -123,6 +123,8 @@ func main() {
 	}
 
 	back, cancel := context.WithCancel(context.Background())
+	fullAddr := W.GetHostAddress()
+	log.Printf("INFO: listening on - %s\n", fullAddr)
 	SetupStreams()
 
 	go updateWallet(back, cancel)
@@ -381,9 +383,6 @@ func FloodHandler(s network.Stream) {
 }
 
 func SetupStreams() {
-	fullAddr := W.GetHostAddress()
-	log.Printf("INFO: listening on - %s\n", fullAddr)
-
 	W.GetHost().SetStreamHandler("REQUEST", RequestHandler)
 	W.GetHost().SetStreamHandler("INITIALIZE", InitializeHandler)
 	W.GetHost().SetStreamHandler("FLOOD", FloodHandler)
