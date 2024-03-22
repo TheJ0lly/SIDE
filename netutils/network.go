@@ -395,12 +395,44 @@ func ForwardMetadata(addresses []multiaddr.Multiaddr, h core.Host, metadata []by
 
 		s, err := h.NewStream(context.Background(), info.ID, "FLOOD")
 
-		_, err = s.Write(metadata)
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		log.Printf("INFO: connected successfully to %s\n", addr.String())
+
+		_, err = s.Write([]byte(strconv.Itoa(len(metadata))))
 
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 			log.Printf("INFO: moving to the next address\n")
 			continue
+		}
+
+		log.Printf("INFO: waiting for ready signal\n")
+		var stor = make([]byte, 10)
+
+		_, err = s.Read(stor)
+
+		if err != nil {
+			log.Printf("ERROR: %s\n", err)
+			log.Printf("INFO: moving to the next address\n")
+			continue
+		}
+
+		resp := ConvertBytesToString(stor)
+
+		if resp == "READY" {
+			log.Printf("INFO: ready signal recieved - sending bytes\n")
+			_, err = s.Write(metadata)
+
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+				log.Printf("INFO: moving to the next address\n")
+				continue
+			}
 		}
 
 		log.Printf("INFO: successfully forward metadata to %s\n", addr.String())
