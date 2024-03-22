@@ -351,6 +351,21 @@ func FloodHandler(s network.Stream) {
 
 		if BC.GetLastMetaData().GetMetadataHash() == md.GetMetadataHash() {
 			log.Printf("INFO: metadata already present\n")
+
+			log.Printf("INFO: exporting new wallet data\n")
+			err = W.ExportWallet()
+			if err != nil {
+
+				log.Printf("ERROR: %s\n", err)
+			}
+
+			log.Printf("INFO: importing new wallet data\n")
+			W, err = wallet.ImportWallet(UserName)
+			if err != nil {
+
+				log.Printf("ERROR: %s\n", err)
+			}
+			SetupStreams()
 			return
 		}
 
