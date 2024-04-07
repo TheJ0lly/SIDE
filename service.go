@@ -261,6 +261,7 @@ func InitializeHandler(s network.Stream) {
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
+		return
 	}
 
 	BC.Unlock()
@@ -269,6 +270,7 @@ func InitializeHandler(s network.Stream) {
 
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
+		return
 	}
 }
 
@@ -384,15 +386,15 @@ func FloodHandler(s network.Stream) {
 	log.Printf("INFO: exporting new wallet data\n")
 	err = W.ExportWallet()
 	if err != nil {
-
 		log.Printf("ERROR: %s\n", err)
+		return
 	}
 
 	log.Printf("INFO: importing new wallet data\n")
 	W, err = wallet.ImportWallet(UserName)
 	if err != nil {
-
 		log.Printf("ERROR: %s\n", err)
+		return
 	}
 	SetupStreams()
 }
