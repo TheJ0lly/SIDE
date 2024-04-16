@@ -314,6 +314,7 @@ func FloodProtocol(addresses []multiaddr.Multiaddr, h core.Host, md *metadata.Me
 			Source:      md.GetSourceName(),
 			Destination: md.GetDestinationName(),
 			AssetName:   md.GetAssetName(),
+			Hash:        md.GetMetadataHash(),
 		}
 
 		b, err := json.Marshal(mie)

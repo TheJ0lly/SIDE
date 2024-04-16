@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -350,6 +351,13 @@ func FloodHandler(s network.Stream) {
 		log.Printf("INFO: unmarshalling successful\n")
 
 		md := metadata.CreateNewMetaData(mie.Source, mie.Destination, mie.AssetName)
+
+		if md.GetMetadataHash() != sha256.Sum256([]byte(md.GetMetaDataString())) {
+			log.Printf("ERROR: metadata hash does not match\n")
+			return
+		}
+
+		log.Printf("INFO: successfully unmarshalled and validated metadata\n")
 
 		if BC.GetLastMetaData().GetMetadataHash() == md.GetMetadataHash() {
 			log.Printf("INFO: metadata already present\n")
