@@ -6,20 +6,26 @@ type MetaData struct {
 	mSource      string
 	mDestination string
 	mAssetName   string
+	mHash        [32]byte
 }
 
 type MetadataIE struct {
-	Source      string `json:"source"`
-	Destination string `json:"destination"`
-	AssetName   string `json:"asset_name"`
+	Source      string   `json:"source"`
+	Destination string   `json:"destination"`
+	AssetName   string   `json:"asset_name"`
+	Hash        [32]byte `json:"hash"`
 }
 
 func CreateNewMetaData(source string, destination string, assetName string) *MetaData {
-	return &MetaData{
+	md := &MetaData{
 		mSource:      source,
 		mDestination: destination,
 		mAssetName:   assetName,
 	}
+
+	md.mHash = sha256.Sum256([]byte(md.GetMetaDataString()))
+
+	return md
 }
 
 func (md *MetaData) GetSourceName() string {
@@ -39,5 +45,5 @@ func (md *MetaData) GetMetaDataString() string {
 }
 
 func (md *MetaData) GetMetadataHash() [32]byte {
-	return sha256.Sum256([]byte(md.GetMetaDataString()))
+	return md.mHash
 }

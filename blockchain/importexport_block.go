@@ -54,6 +54,7 @@ func getMetadataIESlice(b *Block) []metadata.MetadataIE {
 			Source:      md.GetSourceName(),
 			Destination: md.GetDestinationName(),
 			AssetName:   md.GetAssetName(),
+			Hash:        md.GetMetadataHash(),
 		})
 	}
 
