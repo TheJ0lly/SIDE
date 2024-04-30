@@ -27,20 +27,20 @@ if os_name == "Windows":
         location = sys.argv[1]
 
     print("Installing SIDE_Installer...")
-    err = os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Installer.exe installer.go")
+    err = os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Installer.exe installer\\installer.go")
 
     if err != 0:
         print("Go toolchain not installed on this machine! Consider installing the Go toolchain before installing!")
         sys.exit(2)
 
     print("Installing SIDE_Uninstaller...")
-    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Uninstaller.exe uninstaller.go")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Uninstaller.exe uninstaller\\uninstaller.go")
 
     print("Installing SIDE_Service...")
-    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Service.exe service.go")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE_Service.exe service\\service.go")
 
     print("Installing SIDE...")
-    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE.exe main.go")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}\\SIDE.exe client\\main.go")
 
 else:
     location = None
@@ -52,20 +52,20 @@ else:
         location = sys.argv[1]
 
     print("Installing SIDE_Installer...")
-    err = os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Installer installer.go")
+    err = os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Installer installer/installer.go")
 
     if err != 0:
         print("Go toolchain not installed on this machine! Consider installing the Go toolchain before installing!")
         sys.exit(2)
 
     print("Installing SIDE_Uninstaller...")
-    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Uninstaller uninstaller.go")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Uninstaller uninstaller/uninstaller.go")
 
     print("Installing SIDE_Service...")
-    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Service service.go")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE_Service service/service.go")
 
     print("Installing SIDE...")
-    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE main.go")
+    os.system(f"go build -ldflags=\"-s -w\" -o {location}/SIDE client/main.go")
 
 
 print("\nSuccessfully installed SIDE.")

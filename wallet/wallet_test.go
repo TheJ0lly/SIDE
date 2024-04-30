@@ -3,7 +3,7 @@ package wallet
 import "testing"
 
 func TestCreateNewWallet_Correct(t *testing.T) {
-	W, err := CreateNewWallet("TestUser", "TestPass", "TestLoc", true, false, "/ip4/127.0.0.0/tcp/8080")
+	W, err := CreateNewWallet("TestUser", "TestPass", "TestAdd", "", "8080")
 
 	if err != nil {
 		t.Errorf("Error: %s\n", err)
@@ -19,7 +19,7 @@ func TestCreateNewWallet_Correct(t *testing.T) {
 }
 
 func TestCreateNewWallet_FailAddress(t *testing.T) {
-	_, err := CreateNewWallet("TestUser", "TestPass", "TestLoc", true, false, "randomstring")
+	_, err := CreateNewWallet("TestUser", "TestPass", "TestAdd", "123456789", "8080")
 
 	if err == nil {
 		t.Errorf("Error: %s\n", err)
@@ -30,7 +30,7 @@ func TestCreateNewWallet_FailAddress(t *testing.T) {
 }
 
 func TestWallet_ExportWallet(t *testing.T) {
-	W, err := CreateNewWallet("TestUser", "TestPass", "TestLoc", true, false, "/ip4/127.0.0.0/tcp/8080")
+	W, err := CreateNewWallet("TestUser", "TestPass", "TestAdd", "", "8080")
 
 	if err != nil {
 		t.Errorf("Error: %s\n", err)
@@ -48,7 +48,7 @@ func TestWallet_ExportWallet(t *testing.T) {
 }
 
 func TestImportWallet(t *testing.T) {
-	W, err := CreateNewWallet("TestUser", "TestPass", "TestLoc", true, false, "/ip4/127.0.0.0/tcp/8080")
+	W, err := CreateNewWallet("TestUser", "TestPass", "TestAdd", "", "8080")
 
 	if err != nil {
 		t.Errorf("Error: %s\n", err)
@@ -75,7 +75,7 @@ func TestImportWallet(t *testing.T) {
 }
 
 func TestWallet_AddAsset(t *testing.T) {
-	W, err := CreateNewWallet("TestUser", "TestPass", "TestLoc", true, false, "/ip4/127.0.0.0/tcp/8080")
+	W, err := CreateNewWallet("TestUser", "TestPass", "TestAdd", "", "8080")
 
 	if err != nil {
 		t.Errorf("Error: %s\n", err)
@@ -102,4 +102,45 @@ func TestWallet_AddAsset(t *testing.T) {
 		t.Fail()
 		return
 	}
+
+	_, err = W.RemoveAsset("Photo")
+
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+		t.Fail()
+		return
+	}
+}
+
+func TestWallet_RemoveAsset(t *testing.T) {
+	W, err := CreateNewWallet("TestUser", "TestPass", "TestRem", "", "8080")
+
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+		t.Fail()
+		return
+	}
+
+	a, err := W.AddAssetFromLocal("Photo", "../testassets/index.jpg")
+
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+		t.Fail()
+		return
+	}
+
+	a, err = W.RemoveAsset("Photo")
+
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+		t.Fail()
+		return
+	}
+
+	if !(a.GetName() == "Photo") {
+		t.Errorf("Error: Asset did not match name\n")
+		t.Fail()
+		return
+	}
+
 }
