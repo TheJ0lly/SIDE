@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/TheJ0lly/GoChain/asset"
+	"github.com/TheJ0lly/GoChain/generalerrors"
 	"github.com/TheJ0lly/GoChain/netutils"
 	"github.com/TheJ0lly/GoChain/osspecifics"
 	"github.com/libp2p/go-libp2p/core"
@@ -12,10 +14,6 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"log"
 	"os"
-	"path/filepath"
-
-	"github.com/TheJ0lly/GoChain/asset"
-	"github.com/TheJ0lly/GoChain/generalerrors"
 )
 
 const (
@@ -82,18 +80,8 @@ func (w *Wallet) AddAssetFromLocal(assetName string, fileLocation string) (*asse
 		return nil, &generalerrors.ReadFileFailed{File: fileLocation}
 	}
 
-	var assetToAdd *asset.Asset
+	var assetToAdd *asset.Asset = asset.CreateNewAsset(assetName, fileData)
 	AssetPath := osspecifics.CreatePath(w.mDatabaseDir, assetName)
-
-	switch asset.DetermineType(fileData) {
-	case asset.JPEG:
-		assetToAdd = asset.CreateNewAsset(assetName, asset.JPEG, fileData)
-	case asset.PDF:
-		assetToAdd = asset.CreateNewAsset(assetName, asset.PDF, fileData)
-	default:
-		fileExt := filepath.Ext(AssetPath)
-		return nil, &generalerrors.UnknownFormat{FileExt: fileExt}
-	}
 
 	err = os.WriteFile(AssetPath, fileData, 0444)
 

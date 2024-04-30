@@ -60,13 +60,7 @@ func ImportWallet(username string) (*Wallet, error) {
 			return nil, &generalerrors.ReadFileFailed{File: path}
 		}
 
-		ft := asset.DetermineType(bytesFromFile)
-
-		if ft == asset.UNKNOWN {
-			return nil, &generalerrors.UnknownFormat{FileExt: path}
-		}
-
-		newAsset := asset.CreateNewAsset(a, ft, bytesFromFile)
+		newAsset := asset.CreateNewAsset(a, bytesFromFile)
 
 		assetSlice = append(assetSlice, newAsset)
 	}
