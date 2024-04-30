@@ -1,10 +1,5 @@
 package hashtree
 
-import (
-	"crypto/sha256"
-	"github.com/TheJ0lly/GoChain/metadata"
-)
-
 type Pair struct {
 	mLHash [32]byte
 	mRHash [32]byte
@@ -62,31 +57,6 @@ func generateTreeRecursive(l [][32]byte, t *Tree) {
 		generateTreeRecursive(newList, t)
 	}
 
-}
-
-func ValidateData(name metadata.MetaData, t *Tree) bool {
-	nameHash := sha256.Sum256([]byte(name.GetMetaDataString()))
-
-	var l []Node
-
-	for i, k := range t.mTreeMatrix[0] {
-		if k == nameHash {
-			l = getListOfHashesToValidate(i, t)
-		}
-	}
-
-	var p *Pair
-
-	for _, k := range l {
-		if k.mDirection {
-			p = &Pair{mLHash: nameHash, mRHash: k.mHash}
-		} else {
-			p = &Pair{mLHash: k.mHash, mRHash: nameHash}
-		}
-		nameHash = p.generateHash()
-	}
-
-	return nameHash == t.RootHash
 }
 
 // ClearTree - will clear the current tree
