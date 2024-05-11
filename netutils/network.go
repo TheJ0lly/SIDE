@@ -65,7 +65,7 @@ func CreateNewNode(Opt Options) (core.Host, error) {
 
 		addresses = append(addresses, fmt.Sprintf("/%s/%s/tcp/%s", ipversion, Opt.ip, Opt.port))
 	} else {
-		log.Printf("INFO: no IP has been given - auto searching for IPv4 and IPv6 addresses\n")
+		log.Printf("INFO: no IP has been given - auto searching for IPv4 address\n")
 
 		addresses = append(addresses, fmt.Sprintf("/ip4/0.0.0.0/tcp/%s", port))
 		addresses = append(addresses, fmt.Sprintf("/ip6/::/tcp/%s", port))
