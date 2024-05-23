@@ -20,6 +20,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"time"
 )
 
 type Options struct {
@@ -93,7 +94,9 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 	ok := false
 	var s network.Stream
 	var buff []byte
+	var end time.Duration
 	for _, addr := range addresses {
+		start := time.Now()
 		log.Printf("INFO: getting peer information\n")
 		info, err := peer.AddrInfoFromP2pAddr(addr)
 
@@ -146,13 +149,15 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 			continue
 		} else {
 			ok, buff = receiveAsset(s, assetName, val)
+			end = time.Since(start)
+
 			if !ok {
 				log.Printf("INFO: moving to the next address\n")
 				continue
 			}
 		}
 
-		log.Printf("INFO: request executed successfully\n")
+		log.Printf("INFO: request executed successfully - %v microseconds\n", end.Milliseconds())
 		ok = true
 		break
 	}
