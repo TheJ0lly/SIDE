@@ -157,7 +157,7 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 			}
 		}
 
-		log.Printf("INFO: request executed successfully - %v microseconds\n", end.Milliseconds())
+		log.Printf("INFO: request executed successfully - %v ms\n", end.Milliseconds())
 		ok = true
 		break
 	}
