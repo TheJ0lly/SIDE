@@ -6,6 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net"
+	"strconv"
+	"time"
+
 	"github.com/TheJ0lly/GoChain/asset"
 	"github.com/TheJ0lly/GoChain/blockchain"
 	"github.com/TheJ0lly/GoChain/metadata"
@@ -16,11 +22,6 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/peerstore"
 	"github.com/multiformats/go-multiaddr"
-	"io"
-	"log"
-	"net"
-	"strconv"
-	"time"
 )
 
 type Options struct {
@@ -157,7 +158,7 @@ func MakeRequest(addresses []multiaddr.Multiaddr, ha core.Host, assetName string
 			}
 		}
 
-		log.Printf("INFO: request executed successfully - %v ms\n", end.Milliseconds())
+		log.Printf("INFO: request executed successfully - %v\n", end)
 		ok = true
 		break
 	}
